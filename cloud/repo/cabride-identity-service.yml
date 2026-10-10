@@ -1,0 +1,7 @@
+database:
+    name: cabride_identity
+
+eureka:
+    client:
+        webclient:
+            enabled: true

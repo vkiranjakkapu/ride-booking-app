@@ -1,0 +1,75 @@
+management:
+    endpoints:
+        web:
+            base-path: /actuator
+            exposure:
+                include: refresh,health
+
+database:
+    host: ${DATABASE_HOST}
+    port: ${DATABASE_PORT}
+    password: ${DATABASE_USERNAME}
+    username: ${DATABASE_PASSWORD}
+
+services:
+    uri:
+        identity: http://cabride-identity-service/identity/api/v1
+        maintenance: http://cabride-maintenance-service/speech/api/v1
+
+eureka:
+    props:
+        defaultZone: http://localhost:8761/eureka
+        hostname: localhost
+    client:
+        register-with-eureka: true
+        fetch-registry: true
+        service-url:
+            defaultZone: ${eureka.props.defaultZone}
+    instance:
+        hostname: ${eureka.props.hostname}
+
+platform:
+    logging:
+        level: INFO
+        request:
+            enabled: true
+            include-query-string: true
+            include-client-ip: false
+        exception-logging:
+            enabled: true
+        file:
+            directory: logs
+            name: application
+            max-size: 50MB
+            max-history: 30
+            total-size-cap: 512MB
+    rest-client:
+        propagation:
+            context:
+                enabled: true
+            bearer-token:
+                enabled: true
+    security:
+        public-paths:
+            - "/swagger-ui/**"
+            - "/v3/api-docs/**"
+            - "/identity/api/v1/auth/**"
+            - "/cabride/api/v1/media/fetch"
+            - "/cabride/api/v1/media/fetch/*"
+            - "/cabride/api/v1/publish/publication"
+            - "/cabride/api/v1/contact/sendquote"
+        admin-paths:
+            - "/actuator/**"
+        cors:
+            enabled: false
+        jwt:
+            enabled: true
+            issuer: cabride
+            authorities-claim: roles
+            authority-prefix: ROLE_
+            secret: a-string-secret-at-least-256-bits-long
+            access-token-expiration: 2h
+            refresh-token-expiration: 7d
+            clock-skew: 60s
+    web:
+        enabled: true
