@@ -18,12 +18,7 @@
 
 		<dependency>
 			<groupId>com.platform</groupId>
-			<artifactId>security</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>com.platform</groupId>
-			<artifactId>restclient</artifactId>
+			<artifactId>security-reactive</artifactId>
 		</dependency>
 
 		<dependency>
@@ -33,7 +28,7 @@
 
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-starter-gateway-server-webmvc</artifactId>
+			<artifactId>spring-cloud-starter-gateway-server-webflux</artifactId>
 		</dependency>
 
 		<dependency>
