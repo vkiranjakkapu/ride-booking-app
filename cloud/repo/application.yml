@@ -54,10 +54,7 @@ platform:
             - "/swagger-ui/**"
             - "/v3/api-docs/**"
             - "/identity/api/v1/auth/**"
-            - "/cabride/api/v1/media/fetch"
-            - "/cabride/api/v1/media/fetch/*"
-            - "/cabride/api/v1/publish/publication"
-            - "/cabride/api/v1/contact/sendquote"
+            - "/bookings/ws"
         admin-paths:
             - "/actuator/**"
         cors:
@@ -67,7 +64,7 @@ platform:
             issuer: cabride
             authorities-claim: roles
             authority-prefix: ROLE_
-            secret: a-string-secret-at-least-256-bits-long
+            secret: ${PLATFORM_JWT_SECRET}
             access-token-expiration: 2h
             refresh-token-expiration: 7d
             clock-skew: 60s

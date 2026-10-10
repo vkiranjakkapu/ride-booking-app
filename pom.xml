@@ -64,6 +64,12 @@
 
             <dependency>
                 <groupId>com.platform</groupId>
+                <artifactId>security-reactive</artifactId>
+                <version>${platform.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.platform</groupId>
                 <artifactId>restclient</artifactId>
                 <version>${platform.version}</version>
             </dependency>

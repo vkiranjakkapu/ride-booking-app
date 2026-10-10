@@ -25,6 +25,7 @@
         <module>web</module>
         <module>logging</module>
         <module>security</module>
+        <module>security-reactive</module>
         <module>restclient</module>
     </modules>
 

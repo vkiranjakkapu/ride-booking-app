@@ -4,17 +4,27 @@ platform:
       enabled: true
       allowed-origin-patterns:
         - http://localhost:5173
-        - http://localhost:5174,
-        - http://localhost:4173,
-        - http://localhost:4174,
+        - http://localhost:5174
+        - http://localhost:4173
+        - http://localhost:4174
+
+server:
+  forward-headers-strategy: framework
 
 spring:
+  main:
+    web-application-type: reactive
   cloud:
     gateway:
       server:
-        webmvc:
+        webflux:
           routes:
             - id: cabride-identity-service
               uri: lb://cabride-identity-service
               predicates:
                 - Path=/identity/**
+
+            - id: cabride-bookings-service
+              uri: lb:ws://cabride-bookings-service
+              predicates:
+                - Path=/bookings/**
