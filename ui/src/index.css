@@ -15,11 +15,11 @@
 
 @layer base {
     * {
-        @apply border-dark-secondary/50 dark:border-dark-secondary transition-all duration-100;
+        @apply border-dark-secondary/30 dark:border-dark-secondary transition-all duration-100;
     }
 
     body {
-        @apply text-primary-accent dark:bg-dark-primary dark:text-dark-accent;
+        @apply text-dark-secondary dark:text-dark-accent dark:bg-dark-primary;
     }
 
     .notification {
@@ -59,14 +59,14 @@
     input,
     select,
     textarea {
-        @apply px-2 py-1.5 w-full rounded border outline-none ring-primary-accent/50 dark:ring-dark-accent focus:border-primary-accent focus:ring-2 focus:ring-offset-0;
+        @apply px-2 py-1.5 w-full rounded border bg-primary/20 dark:bg-dark-secondary outline-none ring-primary-accent/50 dark:ring-dark-accent focus:border-primary-accent focus:ring-2 focus:ring-offset-0;
     }
 
     .form-group {
-        @apply px-2 py-1.5 m-1 rounded border flex items-center gap-1 ring-primary-accent/50 dark:ring-dark-accent focus-within:border-primary-accent focus-within:ring-2 focus-within:ring-offset-0;
+        @apply px-2 py-1.5 m-1 rounded border bg-primary/20 dark:bg-dark-secondary flex items-center gap-1 ring-primary-accent/50 dark:ring-dark-accent/30 focus-within:border-primary-accent focus-within:ring-2 focus-within:ring-offset-0;
 
         & > :is(input, select, textarea) {
-            @apply rounded-none ring-0 border-0 py-0 px-1;
+            @apply rounded-none ring-0 border-0 py-0 px-1 bg-transparent;
         }
 
         & > label {
@@ -76,6 +76,14 @@
 
     .bg-theme {
         @apply bg-white dark:bg-dark-secondary;
+
+        & * {
+            @apply dark:border-dark-primary;
+        }
+
+        & :where(.form-group, input, select, textarea) {
+            @apply dark:bg-dark-primary;
+        }
     }
 
     .section-width {
@@ -83,7 +91,7 @@
     }
 
     button {
-        @apply px-2 py-1 rounded border border-primary dark:border-dark-primary bg-primary dark:bg-dark-primary text-primary-accent dark:text-dark-accent outline-primary dark:outline-dark-primary outline-1 outline-offset-1 cursor-pointer;
+        @apply px-2 py-1 rounded border border-primary dark:border-dark-primary bg-primary dark:bg-dark-secondary text-primary-accent dark:text-dark-accent outline-primary dark:outline-dark-accent/20 outline-1 outline-offset-1 cursor-pointer;
 
         &.primary {
             @apply px-2 py-1 rounded border bg-dark-primary dark:bg-primary text-primary dark:text-primary-accent outline-1 outline-offset-1 outline-dark-primary dark:outline-primary;

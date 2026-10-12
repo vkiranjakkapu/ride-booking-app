@@ -3,6 +3,7 @@ import {
     BellAlertIcon,
     ChartBarIcon,
     ClockIcon,
+    TicketIcon,
     UserIcon,
     UserPlusIcon,
 } from "@heroicons/react/24/outline";
@@ -47,7 +48,7 @@ export default function NavbarComponent({
         {
             page: "Booking",
             uri: RoutePaths.BOOKING,
-            icon: BellAlertIcon,
+            icon: TicketIcon,
             roles: [RoleType.RIDER, RoleType.ADMIN],
         },
         {

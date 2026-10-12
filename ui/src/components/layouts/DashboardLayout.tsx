@@ -127,7 +127,7 @@ export default function DashboardLayout({
                     />
                 </div>
             </nav>
-            <div className="section-width bg-theme p-4 lg:p-5">{children}</div>
+            <div className="section-width">{children}</div>
         </main>
     );
 }
