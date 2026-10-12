@@ -1,11 +1,28 @@
 import { InformationCircleIcon } from "@heroicons/react/16/solid";
-import type { ToastProps } from "../../../context/notifications/useNotifications";
+import type { ErrorResponse } from "../../../api/api";
+import type { NoticeTheme } from "../../../context/notifications/useNotifications";
+import type { IconProps } from "../../commons";
+
+export type ToastProps = {
+    icon?: IconProps;
+    type: NoticeTheme;
+    message: string | ErrorResponse;
+};
 
 export default function ToastComponent({
     type,
     message,
     icon: Icon,
 }: ToastProps) {
+    const msg =
+        typeof message === "object"
+            ? message.validationErrors.length > 0
+                ? message.validationErrors.map(
+                      (ve) => `${ve.field} ${ve.message}`,
+                  )
+                : message.errorMessage
+            : message;
+
     return (
         <div
             className={`border border-l-3 p-2 rounded flex items-center gap-1 w-[30ch] ${
@@ -23,7 +40,7 @@ export default function ToastComponent({
             ) : (
                 <InformationCircleIcon className="size-4" />
             )}
-            <span>{message}</span>
+            <span>{msg}</span>
         </div>
     );
 }

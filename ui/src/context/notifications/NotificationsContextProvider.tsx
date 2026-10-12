@@ -1,9 +1,9 @@
 import { useRef, useState, type ReactNode } from "react";
+import type { ToastProps } from "../../components/notifications/components/ToastComponent";
 import NotificationLayout from "../../components/notifications/NotificationLayout";
 import {
     NotificationContext,
-    type RideNotificationProps,
-    type ToastProps,
+    type RideUpdateProps,
 } from "./useNotifications";
 
 export type NotificationsContextProviderProps = {
@@ -15,9 +15,7 @@ export default function NotificationsContextProvider({
 }: NotificationsContextProviderProps) {
     const [toasts, setToasts] = useState<ToastProps[]>([]);
 
-    const [rideNotifications, setRideNotifications] = useState<
-        RideNotificationProps[]
-    >([]);
+    const [rideUpdates, setRideUpdates] = useState<RideUpdateProps[]>([]);
 
     const rideNotificationsTimeoutRef = useRef<ReturnType<
         typeof setTimeout
@@ -39,11 +37,11 @@ export default function NotificationsContextProvider({
         };
     }
 
-    function addRideNotification(rideNotification: RideNotificationProps) {
-        setRideNotifications((prev) => [rideNotification, ...prev]);
+    function addRideNotification(rideNotification: RideUpdateProps) {
+        setRideUpdates((prev) => [rideNotification, ...prev]);
 
         const timeoutId = setTimeout(() => {
-            setRideNotifications((prev) => prev.slice(0, -1));
+            setRideUpdates((prev) => prev.slice(0, -1));
         }, 5000);
 
         rideNotificationsTimeoutRef.current = timeoutId;
@@ -55,7 +53,12 @@ export default function NotificationsContextProvider({
 
     return (
         <NotificationContext
-            value={{ toasts, rideUpdates: rideNotifications, addToast, addRideNotification }}
+            value={{
+                toasts,
+                rideUpdates,
+                addToast,
+                addRideNotification,
+            }}
         >
             <NotificationLayout />
             {children}

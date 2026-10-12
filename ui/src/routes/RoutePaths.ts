@@ -5,7 +5,7 @@ export const RoutePaths = {
     RIDE_REQUESTS: "/rides",
 
     BOOKING: "/booking",
-    ENROUTE: "/enroute/:rideId",
+    ENROUTE: "/booking/:rideId",
 
     HISTORY: "/history",
 

@@ -1,19 +1,8 @@
 import { createContext, useContext } from "react";
-import type { IconProps } from "../../components/commons";
+import type { RideNotificationProps } from "../../components/notifications/components/RideNotificationComponent";
+import type { ToastProps } from "../../components/notifications/components/ToastComponent";
 
 export type NoticeTheme = "info" | "success" | "warn" | "error";
-
-export type ToastProps = {
-    icon?: IconProps;
-    type: NoticeTheme;
-    message: string;
-};
-
-export type RideNotificationProps = {
-    icon?: IconProps;
-    type?: NoticeTheme;
-    message: string;
-};
 
 export type NotificationContextProps = {
     toasts: ToastProps[];

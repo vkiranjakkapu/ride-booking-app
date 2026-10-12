@@ -1,5 +1,12 @@
 import { InformationCircleIcon } from "@heroicons/react/16/solid";
-import type { RideNotificationProps } from "../../../context/notifications/useNotifications";
+import type { NoticeTheme } from "../../../context/notifications/useNotifications";
+import type { IconProps } from "../../commons";
+
+export type RideNotificationProps = {
+    icon?: IconProps;
+    type?: NoticeTheme;
+    message: string;
+};
 
 export default function RideNotificationComponent({
     message,

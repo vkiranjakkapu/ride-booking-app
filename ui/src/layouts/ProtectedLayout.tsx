@@ -1,6 +1,7 @@
 import { Navigate, Outlet } from "react-router-dom";
 import useAuthContext, { AuthStatus } from "../context/auth/useAuthContext";
 import { RoutePaths } from "../routes/RoutePaths";
+import DashboardLayout from "../components/layouts/DashboardLayout";
 
 export default function ProtectedLayout() {
     const { isLoggedIn, status } = useAuthContext();
@@ -13,5 +14,9 @@ export default function ProtectedLayout() {
         return <Navigate to={RoutePaths.LANDING} />;
     }
 
-    return <Outlet />;
+    return (
+        <DashboardLayout>
+            <Outlet />
+        </DashboardLayout>
+    );
 }

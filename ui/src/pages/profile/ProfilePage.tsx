@@ -1,3 +1,5 @@
+import SectionLayoutComponent from "../../components/layouts/SectionLayoutComponent";
+
 export default function ProfilePage() {
-    return <>Profile Page</>
+    return <SectionLayoutComponent>Profile Page</SectionLayoutComponent>;
 }
