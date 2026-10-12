@@ -4,7 +4,7 @@ class AuthService {
     async getProfile<T>(): Promise<ApiResponse<T>> {
         return apiClient({
             type: "get",
-            service: "user",
+            service: "profile",
             uri: "/me",
         });
     }

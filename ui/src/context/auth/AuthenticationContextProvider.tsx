@@ -85,7 +85,8 @@ export default function AuthenticationContextProvider({
     return (
         <AuthContext
             value={{
-                user: userProfile,
+                profile: userProfile,
+                updateProfile: setProfile,
                 status,
                 isLoggedIn,
                 isAdmin,

@@ -54,6 +54,7 @@ platform:
             - "/swagger-ui/**"
             - "/v3/api-docs/**"
             - "/identity/api/v1/auth/**"
+            - "/identity/api/v1/users/register"
             - "/bookings/ws"
         admin-paths:
             - "/actuator/**"

@@ -1,10 +1,10 @@
 import { createPortal } from "react-dom";
-import useNotifications from "../../context/notifications/useNotifications";
+import useToastNotifications from "../../context/toasts/useToastNotifications";
 import RideNotificationComponent from "./components/RideNotificationComponent";
 import ToastComponent from "./components/ToastComponent";
 
 export default function NotificationLayout() {
-    const { toasts, rideUpdates } = useNotifications();
+    const { toasts, rideUpdates } = useToastNotifications();
 
     const layout = (
         <div className="z-50 absolute inset-0 m-6 pointer-events-none">

@@ -141,6 +141,14 @@ public class UserServiceImpl implements UserService {
 			throw new BusinessException(IdentityExceptions.REGISTRATION_ERROR, "Two Passwords didn't match!");
 		}
 
+		if (request.type().equals(RoleType.ADMIN)) {
+			throw new BusinessException(IdentityExceptions.REGISTRATION_ERROR, "Role type not found.");
+		}
+
+		if (userRepository.existsByEmail(request.email())) {
+			throw new EmailAlreadyUsedException("Email already exists");
+		}
+
 		Role role = roleRepository.findByName(request.type())
 				.orElseThrow(() -> new ResourceNotFoundException("Role not found"));
 
@@ -152,6 +160,7 @@ public class UserServiceImpl implements UserService {
 				.password(passwordEncoder.encode(Optional.ofNullable(request.password()).orElse("password")))
 				.address(Address.builder().build())
 				.build();
+
 		return mapToResponse(userRepository.save(user));
 	}
 

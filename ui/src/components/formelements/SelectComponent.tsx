@@ -23,7 +23,7 @@ export default function SelectComponent({
     ...props
 }: SelectComponentProps) {
     return (
-        <div className={`${label ? `form-group` : ``} ${customise}`}>
+        <div className={`${label ? `form-group` : ``} ${customise ?? ""}`}>
             {label && (
                 <label {...label} htmlFor={id} className="space-x-1">
                     {label.icon && <label.icon className="size-4" />}

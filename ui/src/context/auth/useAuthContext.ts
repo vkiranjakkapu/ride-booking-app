@@ -1,4 +1,4 @@
-import { createContext, useContext } from "react";
+import { createContext, useContext, type Dispatch, type SetStateAction } from "react";
 import type { LoginResponse } from "../../services/AuthService";
 
 export type UserProfile = {
@@ -46,12 +46,13 @@ export const AuthStatus = {
 export type AuthStatus = (typeof AuthStatus)[keyof typeof AuthStatus];
 
 type AuthContextHolder = {
-    user: UserProfile;
+    profile: UserProfile;
     status: AuthStatus;
     isLoggedIn: boolean;
     isAdmin: boolean;
     isDriver: boolean;
     isRider: boolean;
+    updateProfile: Dispatch<SetStateAction<UserProfile>>;
     login: (email: string, password: string) => Promise<LoginResponse>;
     logout: () => void;
 };

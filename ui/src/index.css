@@ -22,10 +22,36 @@
         @apply text-primary-accent dark:bg-dark-primary dark:text-dark-accent;
     }
 
-    form {
-        @apply *:not-last:mb-3;
+    .notification {
+        @apply bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border-cyan-700 dark:border-cyan-400;
+        &.bold {
+            @apply bg-cyan-500/30 text-white;
+        }
 
-        & > *:not(.form-group) {
+        &.success {
+            @apply bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-700 dark:border-emerald-400;
+            &.bold {
+                @apply bg-emerald-500/30 text-white;
+            }
+        }
+        &.error {
+            @apply bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-700 dark:border-rose-400;
+            &.bold {
+                @apply bg-rose-500/30 text-white;
+            }
+        }
+        &.warn {
+            @apply bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-700 dark:border-amber-400;
+            &.bold {
+                @apply bg-amber-500/30 text-white;
+            }
+        }
+    }
+
+    form {
+        @apply *:not-last:mb-1;
+
+        & > *:where(input, select, textarea):not(.form-group > *) {
             @apply p-1;
         }
     }
@@ -53,7 +79,7 @@
     }
 
     .section-width {
-        @apply w-full md:w-4/6 mx-auto;
+        @apply w-full md:w-4/5 lg:w-5/6 mx-auto;
     }
 
     button {

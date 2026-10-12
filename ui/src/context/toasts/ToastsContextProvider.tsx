@@ -1,26 +1,23 @@
 import { useRef, useState, type ReactNode } from "react";
-import type { ToastProps } from "../../components/notifications/components/ToastComponent";
-import NotificationLayout from "../../components/notifications/NotificationLayout";
-import {
-    NotificationContext,
-    type RideUpdateProps,
-} from "./useNotifications";
+import type { RideNotificationProps } from "../../components/toasts/components/RideNotificationComponent";
+import type { ToastProps } from "../../components/toasts/components/ToastComponent";
+import NotificationLayout from "../../components/toasts/ToastsNotificationLayout";
+import { NotificationContext } from "./useToastNotifications";
 
 export type NotificationsContextProviderProps = {
     children: ReactNode;
 };
 
-export default function NotificationsContextProvider({
+export default function ToastsContextProvider({
     children,
 }: NotificationsContextProviderProps) {
     const [toasts, setToasts] = useState<ToastProps[]>([]);
+    const [rideUpdates, setRideUpdates] = useState<RideNotificationProps[]>([]);
 
-    const [rideUpdates, setRideUpdates] = useState<RideUpdateProps[]>([]);
-
+    const autoCloseTime = 5000;
     const rideNotificationsTimeoutRef = useRef<ReturnType<
         typeof setTimeout
     > | null>(null);
-
     const toastsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     function addToast(newToast: ToastProps) {
@@ -28,7 +25,7 @@ export default function NotificationsContextProvider({
 
         const timeoutId = setTimeout(() => {
             setToasts((prev) => prev.slice(0, -1));
-        }, 5000);
+        }, autoCloseTime);
 
         toastsTimeoutRef.current = timeoutId;
 
@@ -37,12 +34,16 @@ export default function NotificationsContextProvider({
         };
     }
 
-    function addRideNotification(rideNotification: RideUpdateProps) {
+    function clearToast(toast: ToastProps) {
+        setToasts((prev) => prev.filter((tst) => tst != toast));
+    }
+
+    function addRideNotification(rideNotification: RideNotificationProps) {
         setRideUpdates((prev) => [rideNotification, ...prev]);
 
         const timeoutId = setTimeout(() => {
             setRideUpdates((prev) => prev.slice(0, -1));
-        }, 5000);
+        }, autoCloseTime);
 
         rideNotificationsTimeoutRef.current = timeoutId;
 
@@ -57,6 +58,7 @@ export default function NotificationsContextProvider({
                 toasts,
                 rideUpdates,
                 addToast,
+                clearToast,
                 addRideNotification,
             }}
         >

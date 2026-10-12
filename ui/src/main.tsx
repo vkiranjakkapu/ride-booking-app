@@ -4,16 +4,16 @@ import "./index.css";
 import App from "./App.tsx";
 import { BrowserRouter } from "react-router-dom";
 import AuthenticationContextProvider from "./context/auth/AuthenticationContextProvider.tsx";
-import NotificationsContextProvider from "./context/notifications/NotificationsContextProvider.tsx";
+import ToastsContextProvider from "./context/toasts/ToastsContextProvider.tsx";
 
 createRoot(document.getElementById("root")!).render(
     <StrictMode>
-        <NotificationsContextProvider>
+        <ToastsContextProvider>
             <AuthenticationContextProvider>
                 <BrowserRouter>
                     <App />
                 </BrowserRouter>
             </AuthenticationContextProvider>
-        </NotificationsContextProvider>
+        </ToastsContextProvider>
     </StrictMode>,
 );

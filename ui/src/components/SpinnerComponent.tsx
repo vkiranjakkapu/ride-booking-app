@@ -36,7 +36,7 @@ export default function SpinnerComponent({
             className={`w-full flex items-center gap-1.5 justify-center ${customize}`}
         >
             <div
-                className={`border-2 border-slate-300 border-t-primary animate-spin rounded-full ${size ?? "size-4"}`}
+                className={`border-2 border-slate-300 border-t-primary-accent animate-spin rounded-full ${size ?? "size-4"}`}
             ></div>
             {text && (
                 <span className={`capitalize ${animate}`}>

@@ -4,6 +4,7 @@ import {
     ChartBarIcon,
     ClockIcon,
     UserIcon,
+    UserPlusIcon,
 } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom";
 import useAuthContext, { RoleType } from "../../context/auth/useAuthContext";
@@ -13,12 +14,16 @@ import type { IconProps } from "../commons";
 
 type NavbarComponentProps = {
     className?: string;
-    theme?: "dark" | "light" | "system";
-    toggleTheme?: (theme: "dark" | "light" | "system") => void;
+    handleLoginClick?: () => void;
+    handleRegisterClick?: () => void;
 };
 
-export default function NavbarComponent({ className }: NavbarComponentProps) {
-    const { user, logout } = useAuthContext();
+export default function NavbarComponent({
+    className,
+    handleLoginClick,
+    handleRegisterClick,
+}: NavbarComponentProps) {
+    const { profile: user, isLoggedIn, logout } = useAuthContext();
 
     const navigate = useNavigate();
 
@@ -35,7 +40,7 @@ export default function NavbarComponent({ className }: NavbarComponentProps) {
         },
         {
             page: "Rides",
-            uri: RoutePaths.DASHBOARD,
+            uri: RoutePaths.RIDE_REQUESTS,
             icon: BellAlertIcon,
             roles: [RoleType.DRIVER],
         },
@@ -61,29 +66,48 @@ export default function NavbarComponent({ className }: NavbarComponentProps) {
         <nav
             className={`flex flex-row justify-center flex-wrap gap-3 ${className}`}
         >
-            {navItems.map((item, idx) => {
-                if (item.roles) {
-                    if (!item.roles.includes(user.roles[0])) {
-                        return;
-                    }
-                }
+            {isLoggedIn ? (
+                <>
+                    {navItems.map((item, idx) => {
+                        if (item.roles) {
+                            if (!item.roles.includes(user.roles[0])) {
+                                return;
+                            }
+                        }
 
-                return (
+                        return (
+                            <ActionButton
+                                key={idx}
+                                icon={item.icon}
+                                text={item.page}
+                                onClick={() => navigate(item.uri)}
+                                className={`rounded-full text-sm ${location.pathname.startsWith(item.uri) || location.pathname.match(item.uri) ? `primary` : ``}`}
+                            />
+                        );
+                    })}
                     <ActionButton
-                        key={idx}
-                        icon={item.icon}
-                        text={item.page}
-                        onClick={() => navigate(item.uri)}
-                        className={`rounded-full text-sm ${location.pathname.startsWith(item.uri) || location.pathname.match(item.uri) ? `primary` : ``}`}
+                        icon={ArrowLeftStartOnRectangleIcon}
+                        onClick={logout}
+                        className={`p-1.5 rounded-full text-white bg-rose-600/80 dark:bg-rose-600/40 outline-rose-600/80 dark:outline-rose-600/40`}
+                        title="Click to Logout"
                     />
-                );
-            })}
-            <ActionButton
-                icon={ArrowLeftStartOnRectangleIcon}
-                onClick={logout}
-                className={`p-1.5 rounded-full text-white bg-rose-600/80 dark:bg-rose-600/40 outline-rose-600/80 dark:outline-rose-600/40`}
-                title="Click to Logout"
-            />
+                </>
+            ) : (
+                <>
+                    <ActionButton
+                        icon={UserPlusIcon}
+                        text={"Login"}
+                        onClick={handleLoginClick}
+                        className={`rounded-full text-sm`}
+                    />
+                    <ActionButton
+                        icon={UserPlusIcon}
+                        text={"Register"}
+                        onClick={handleRegisterClick}
+                        className={`rounded-full text-sm primary`}
+                    />
+                </>
+            )}
         </nav>
     );
 }

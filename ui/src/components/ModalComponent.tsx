@@ -47,7 +47,7 @@ export default function ModalComponent({
 
     const modal = (
         <div
-            className="fixed inset-0 z-1000 flex items-center justify-center p-4 overflow-y-auto"
+            className="fixed inset-0 z-49 flex items-center justify-center p-4 overflow-y-auto"
             role="dialog"
             aria-modal="true"
         >

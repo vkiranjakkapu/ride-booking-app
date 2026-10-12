@@ -11,9 +11,15 @@ import NavbarComponent from "./NavbarComponent";
 
 type DashboardLayoutProps = {
     children: ReactNode;
+    handleLoginClick?: () => void;
+    handleRegisterClick?: () => void;
 };
 
-export default function DashboardLayout({ children }: DashboardLayoutProps) {
+export default function DashboardLayout({
+    children,
+    handleLoginClick,
+    handleRegisterClick,
+}: DashboardLayoutProps) {
     const [openMenu, setOpenMenu] = useState<boolean>(false);
 
     const [theme, setTheme] = useState<"dark" | "light" | "system">(() => {
@@ -67,11 +73,25 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         >
             <nav className="bg-theme shadow-lg *:p-4 *:lg:p-5">
                 <div className="section-width flex flex-wrap justify-between">
-                    <div className="flex items-center gap-2">
-                        <div className="logo">LOGO</div>
+                    <div className="flex items-center gap-2 font-semibold capitalize">
+                        <div className="logo flex items-center gap-2">
+                            <img
+                                src="/favicon.png"
+                                alt="CabRide"
+                                className="size-12 object-cover"
+                            />
+                            <div className="">
+                                <span className="block text-lg">Cab Ride</span>
+                                <span className="block text-xs">Book Your Ride now!</span>
+                            </div>
+                        </div>
                     </div>
                     <div className="flex flex-wrap items-center gap-4">
-                        <NavbarComponent className="hidden md:flex" />
+                        <NavbarComponent
+                            className="hidden md:flex"
+                            handleLoginClick={handleLoginClick}
+                            handleRegisterClick={handleRegisterClick}
+                        />
                         <div className="flex items-center gap-0.5">
                             <ActionButton
                                 icon={theme !== "light" ? MoonIcon : SunIcon}
@@ -102,10 +122,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     </div>
                     <NavbarComponent
                         className={`w-full border-t mt-3 pt-3 md:hidden ${openMenu ? `` : `hidden`}`}
+                        handleLoginClick={handleLoginClick}
+                        handleRegisterClick={handleRegisterClick}
                     />
                 </div>
             </nav>
-            <div className="section-width bg-theme  p-4 lg:p-5">{children}</div>
+            <div className="section-width bg-theme p-4 lg:p-5">{children}</div>
         </main>
     );
 }
