@@ -56,7 +56,6 @@ public class UserController {
 			@ApiResponse(responseCode = "401", description = "Authentication required", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ErrorResponse.class))),
 			@ApiResponse(responseCode = "404", description = "User not found", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ErrorResponse.class)))
 	})
-	@PreAuthorize("hasAnyRole('ADMIN','USER')")
 	@GetMapping("/me")
 	public ResponseEntity<APIResponseDto<UserResponse>> me() {
 		AuthenticatedUser user = authContext.getCurrentUser().orElse(null);
@@ -141,7 +140,7 @@ public class UserController {
 			@ApiResponse(responseCode = "403", description = "Insufficient permissions", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ErrorResponse.class)))
 	})
 	@PostMapping("/search")
-	@PreAuthorize("hasAnyRole('ADMIN','USER')")
+	@PreAuthorize("hasAnyRole('ADMIN')")
 	public ResponseEntity<APIResponseDto<List<UserResponse>>> getAllUsersWithIds(
 			@RequestBody FetchUsersRequestDto request) {
 		return ResponseEntity
@@ -158,7 +157,6 @@ public class UserController {
 			@ApiResponse(responseCode = "404", description = "User not found", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ErrorResponse.class)))
 	})
 	@PutMapping("/{id}")
-	@PreAuthorize("hasAnyRole('ADMIN','USER')")
 	public ResponseEntity<APIResponseDto<UserResponse>> updateUser(
 			@PathVariable UUID id,
 			@Valid @RequestBody UpdateUserRequest request) {
@@ -175,7 +173,6 @@ public class UserController {
 			@ApiResponse(responseCode = "404", description = "User not found", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ErrorResponse.class)))
 	})
 	@PatchMapping("/")
-	@PreAuthorize("hasAnyRole('ADMIN','USER')")
 	public ResponseEntity<APIResponseDto<UserResponse>> changePassword(
 			@Valid @RequestBody PasswordChangeRequestDto request) {
 
