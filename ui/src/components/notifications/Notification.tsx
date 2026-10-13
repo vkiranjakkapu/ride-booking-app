@@ -38,7 +38,7 @@ export default function Notification({
         <>
             {normalizedMessages.length > 0 && (
                 <div
-                    className={`p-2.5 col-span-full flex flex-row gap-2 items-center dark:text-white text-sm rounded-lg notification ${type} ${customise ?? ""}`}
+                    className={`p-2.5 col-span-full flex flex-row gap-2 items-center dark:text-white text-sm rounded notification ${type} ${customise ?? ""}`}
                 >
                     {!hideIcon &&
                         (type == "error" ? (
