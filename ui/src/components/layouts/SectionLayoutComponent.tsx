@@ -25,14 +25,21 @@ export default function SectionLayoutComponent({
     ...props
 }: SectionLayoutComponentProps) {
     return (
-        <section {...props} className={`space-y-3 bg-theme ${props.className}`}>
+        <section
+            {...props}
+            className={`space-y-3 p-4 lg:p-5 bg-theme rounded divide-y *:not-last:pb-1.5 *:not-last:mt-1.5 ${props.className}`}
+        >
             {(title || description || actionButtons) && (
                 <div className="flex flex-wrap items-center justify-between">
                     <div>
                         {(title || description) && (
                             <>
-                                <h1>{title}</h1>
-                                <p className="text-sm">{description}</p>
+                                <h1 className="text-xl font-semibold">
+                                    {title}
+                                </h1>
+                                <p className="text-sm capitalize">
+                                    {description}
+                                </p>
                             </>
                         )}
                     </div>

@@ -3,10 +3,11 @@ import {
     ExclamationCircleIcon,
     InformationCircleIcon,
 } from "@heroicons/react/24/outline";
+import type { ErrorResponse } from "../../api/api";
 
 export type NotificationProps = {
     type: "success" | "error" | "info";
-    messages: string[];
+    messages: string | string[] | ErrorResponse;
     hideIcon?: boolean;
     customise?: string;
 };
@@ -17,11 +18,27 @@ export default function Notification({
     hideIcon = false,
     customise,
 }: NotificationProps) {
+    const normalizedMessages = (() => {
+        if (typeof messages === "string") {
+            return [messages];
+        }
+        if (Array.isArray(messages)) {
+            return messages;
+        }
+
+        if (messages.validationErrors && messages.validationErrors.length > 0) {
+            return messages.validationErrors.map(
+                (ve) => `${ve.field} ${ve.message}`,
+            );
+        }
+        return [messages.errorMessage];
+    })();
+
     return (
         <>
-            {messages.length > 0 && (
+            {normalizedMessages.length > 0 && (
                 <div
-                    className={`p-2.5 col-span-full flex flex-row gap-2 items-center dark:text-white text-sm rounded-lg notification ${type} ${customise ?? ""}`}
+                    className={`p-2.5 col-span-full flex flex-row gap-2 items-center dark:text-white text-sm rounded notification ${type} ${customise ?? ""}`}
                 >
                     {!hideIcon &&
                         (type == "error" ? (
@@ -33,7 +50,7 @@ export default function Notification({
                         ) : (
                             <CheckCircleIcon className="text-emerald-500 size-4" />
                         ))}
-                    <span>{messages.join(", ")}</span>
+                    <span>{normalizedMessages.join(", ")}</span>
                 </div>
             )}
         </>

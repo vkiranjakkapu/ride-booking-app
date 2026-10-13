@@ -1,8 +1,19 @@
-import { CheckBadgeIcon, KeyIcon } from "@heroicons/react/24/outline";
+import {
+    CalendarDaysIcon,
+    CheckBadgeIcon,
+    EnvelopeIcon,
+    FaceSmileIcon,
+    IdentificationIcon,
+    KeyIcon,
+    LockClosedIcon,
+    PhoneIcon,
+    UserIcon,
+} from "@heroicons/react/24/outline";
 import { useEffect, useState, type SubmitEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import type { ErrorResponse } from "../../api/api";
 import ActionButton from "../../components/ActionButtonComponent";
+import DividerComponent from "../../components/DividerComponent";
 import InputComponent from "../../components/formelements/InputComponent";
 import SelectComponent from "../../components/formelements/SelectComponent";
 import SectionLayoutComponent from "../../components/layouts/SectionLayoutComponent";
@@ -29,9 +40,12 @@ export default function ProfilePage() {
         "profile",
         "password",
     ]);
-
     const profileNotifications = notifications["profile"] ?? null;
     const passwordNotifications = notifications["password"] ?? null;
+
+    const [actionProgress, setActionProgress] = useState<
+        "profile" | "password" | null
+    >(null);
 
     useEffect(() => {
         if (!userId) return;
@@ -42,7 +56,11 @@ export default function ProfilePage() {
         }
 
         UserService.getUserById<UserProfile>(userId).then((resp) => {
-            setFetchedUserProfile(resp.data);
+            const prf = resp.data;
+            setFetchedUserProfile({
+                ...prf,
+                name: `${prf.firstName} ${prf.lastName}`,
+            });
         });
     }, [userId, isAdmin, navigate]);
 
@@ -62,6 +80,7 @@ export default function ProfilePage() {
             address: userProfile?.address,
         } as UserProfile;
 
+        setActionProgress("profile");
         UserService.updateProfile<UserProfile>(
             String(userId ?? user?.id),
             payload,
@@ -75,14 +94,17 @@ export default function ProfilePage() {
                 updateProfile(prf);
                 setNotifications("profile", {
                     type: "success",
-                    messages: ["Profile updated successfully"],
+                    messages: "Profile updated successfully",
                 });
             })
             .catch((e: ErrorResponse) => {
                 setNotifications("profile", {
                     type: "error",
-                    messages: [e.errorMessage],
+                    messages: e,
                 });
+            })
+            .finally(() => {
+                setActionProgress(null);
             });
     }
 
@@ -97,7 +119,7 @@ export default function ProfilePage() {
         if (newPassword !== confirmPassword) {
             setNotifications("password", {
                 type: "error",
-                messages: ["Passwords didn't matched!"],
+                messages: "Passwords didn't matched!",
             });
             return;
         }
@@ -107,33 +129,41 @@ export default function ProfilePage() {
             oldPassword: formData.get("oldPassword"),
             newPassword: formData.get("newPassword"),
         };
+        setActionProgress("password");
         UserService.changePassword<UserProfile>(payload)
             .then(() => {
                 setNotifications("password", {
                     type: "success",
-                    messages: ["Password updated successfully"],
+                    messages: "Password updated successfully",
                 });
             })
             .catch((e: ErrorResponse) => {
                 setNotifications("password", {
                     type: "error",
-                    messages:
-                        e.validationErrors && e.validationErrors.length > 0
-                            ? [...e.validationErrors.map((ve) => ve.message)]
-                            : [e.errorMessage],
+                    messages: e,
                 });
+            })
+            .finally(() => {
+                setActionProgress(null);
             });
     }
 
     return (
-        <SectionLayoutComponent>
-            <div className="flex flex-wrap gap-2 justify-center *:flex-1">
+        <SectionLayoutComponent
+            title="Profile"
+            description={`Manage ${isAdmin ? `${fetchedProfile?.name}'s` : "your"} Profile details`}
+        >
+            <div className="flex flex-col md:flex-row flex-wrap gap-3 justify-center *:flex-1">
                 <form
                     key={fetchedProfile?.id ?? "loading"}
                     onSubmit={handleProfileUpdate}
-                    className="grid grid-cols-1 md:grid-cols-2 gap-3 *:m-0 bg-slate-50 dark:bg-slate-800 p-3 rounded border border-slate-200 dark:border-slate-700 shadow-sm"
+                    className="grid grid-cols-1 md:grid-cols-2 items-center gap-3 *:mb-0 p-3 border rounded"
                 >
-                    <h3 className="col-span-full">Edit Profile</h3>
+                    <DividerComponent
+                        text="Edit Profile"
+                        icon={IdentificationIcon}
+                        className="col-span-full"
+                    />
                     {profileNotifications && (
                         <div className="col-span-full">
                             <Notification
@@ -145,12 +175,18 @@ export default function ProfilePage() {
                     <InputComponent
                         id="firstName"
                         placeholder="enter firstname"
+                        label={{
+                            icon: UserIcon,
+                        }}
                         name="firstName"
                         defaultValue={userProfile?.firstName ?? ""}
                         required
                     />
                     <InputComponent
                         id="lastName"
+                        label={{
+                            icon: UserIcon,
+                        }}
                         placeholder="enter lastname"
                         name="lastName"
                         defaultValue={userProfile?.lastName ?? ""}
@@ -159,6 +195,9 @@ export default function ProfilePage() {
                     <InputComponent
                         id="email"
                         type="email"
+                        label={{
+                            icon: EnvelopeIcon,
+                        }}
                         placeholder="enter email"
                         name="email"
                         defaultValue={userProfile?.email ?? ""}
@@ -167,6 +206,9 @@ export default function ProfilePage() {
                     />
                     <InputComponent
                         id="phone"
+                        label={{
+                            icon: PhoneIcon,
+                        }}
                         placeholder="enter phone"
                         name="phone"
                         defaultValue={userProfile?.phone ?? ""}
@@ -174,6 +216,9 @@ export default function ProfilePage() {
                     />
                     <InputComponent
                         id="date"
+                        label={{
+                            icon: CalendarDaysIcon,
+                        }}
                         type="date"
                         placeholder="Date Of Birth"
                         name="dob"
@@ -182,6 +227,9 @@ export default function ProfilePage() {
                     />
                     <SelectComponent
                         id="userGender"
+                        label={{
+                            icon: FaceSmileIcon,
+                        }}
                         emptyOption="Gender"
                         options={Object.keys(UserGender).map((g) => ({
                             text: g,
@@ -195,96 +243,126 @@ export default function ProfilePage() {
                         <ActionButton
                             text="Update"
                             type="submit"
+                            spinner={{
+                                isLoading: actionProgress === "profile",
+                            }}
+                            disabled={actionProgress === "profile"}
                             icon={CheckBadgeIcon}
-                            className="primary"
+                            className="primary ml-auto"
                         />
                     </div>
                 </form>
                 {!userId && (
-                    <>
-                        <form
-                            onSubmit={handlePasswordChange}
-                            className="grid grid-cols-1 gap-3 bg-slate-50 dark:bg-slate-800 p-3 rounded border border-slate-200 dark:border-slate-700 shadow-sm"
-                        >
-                            <h3 className="capitalize">Old Password</h3>
-                            {passwordNotifications && (
-                                <div className="col-span-full">
-                                    <Notification
-                                        type={passwordNotifications.type}
-                                        messages={
-                                            passwordNotifications.messages
-                                        }
-                                    />
-                                </div>
-                            )}
-                            <InputComponent
-                                id="currentPass"
-                                placeholder="Authenticate"
-                                name="oldPassword"
-                                required
-                            />
-                            <div className=""></div>
-                            <h3 className="capitalize">new Password</h3>
-                            <InputComponent
-                                type="password"
-                                id="newPassword"
-                                placeholder="New password"
-                                name="newPassword"
-                                onChange={(e) => {
-                                    const confirmPass = document.getElementById(
-                                        "confirmPassword",
-                                    ) as HTMLInputElement;
-                                    if (
-                                        e.target.value !== "" &&
-                                        confirmPass.value !== e.target.value
-                                    ) {
-                                        setNotifications("password", {
-                                            type: "error",
-                                            messages: [
-                                                "Two Passwords didn't matched!",
-                                            ],
-                                        }, 20);
-                                    } else {
-                                        setNotifications("password", null);
-                                    }
-                                }}
-                                required
-                            />
-                            <InputComponent
-                                type="password"
-                                id="confirmPassword"
-                                placeholder="Confirm password"
-                                name="confirmPassword"
-                                onChange={(e) => {
-                                    const newPass = document.getElementById(
-                                        "newPassword",
-                                    ) as HTMLInputElement;
-                                    if (
-                                        e.target.value !== "" &&
-                                        newPass.value !== e.target.value
-                                    ) {
-                                        setNotifications("password", {
-                                            type: "error",
-                                            messages: [
-                                                "Two Passwords didn't matched!",
-                                            ],
-                                        }, 20);
-                                    } else {
-                                        setNotifications("password", null);
-                                    }
-                                }}
-                                required
-                            />
+                    <form
+                        onSubmit={handlePasswordChange}
+                        className="grid grid-cols-1 gap-3 items-center p-3 border rounded"
+                    >
+                        <DividerComponent
+                            text="Old Password"
+                            icon={KeyIcon}
+                            className="col-span-full"
+                        />
+                        {passwordNotifications && (
                             <div className="col-span-full">
-                                <ActionButton
-                                    type="submit"
-                                    text="Change"
-                                    icon={KeyIcon}
-                                    className="primary"
+                                <Notification
+                                    type={passwordNotifications.type}
+                                    messages={passwordNotifications.messages}
                                 />
                             </div>
-                        </form>
-                    </>
+                        )}
+                        <InputComponent
+                            label={{
+                                icon: KeyIcon,
+                            }}
+                            type="password"
+                            id="currentPass"
+                            placeholder="Authenticate"
+                            name="oldPassword"
+                            required
+                        />
+                        <div className=""></div>
+                        <DividerComponent
+                            text="new Password"
+                            icon={LockClosedIcon}
+                            className="col-span-full"
+                        />
+                        <InputComponent
+                            label={{
+                                icon: LockClosedIcon,
+                            }}
+                            type="password"
+                            id="newPassword"
+                            placeholder="New password"
+                            name="newPassword"
+                            onChange={(e) => {
+                                const confirmPass = document.getElementById(
+                                    "confirmPassword",
+                                ) as HTMLInputElement;
+                                if (
+                                    e.target.value !== "" &&
+                                    confirmPass.value !== e.target.value
+                                ) {
+                                    setNotifications(
+                                        "password",
+                                        {
+                                            type: "error",
+                                            messages: [
+                                                "Two Passwords didn't matched!",
+                                            ],
+                                        },
+                                        20,
+                                    );
+                                } else {
+                                    setNotifications("password", null);
+                                }
+                            }}
+                            required
+                        />
+                        <InputComponent
+                            label={{
+                                icon: LockClosedIcon,
+                            }}
+                            type="password"
+                            id="confirmPassword"
+                            placeholder="Confirm new password"
+                            name="confirmPassword"
+                            onChange={(e) => {
+                                const newPass = document.getElementById(
+                                    "newPassword",
+                                ) as HTMLInputElement;
+                                if (
+                                    e.target.value !== "" &&
+                                    newPass.value !== e.target.value
+                                ) {
+                                    setNotifications(
+                                        "password",
+                                        {
+                                            type: "error",
+                                            messages: [
+                                                "Two Passwords didn't matched!",
+                                            ],
+                                        },
+                                        20,
+                                    );
+                                } else {
+                                    setNotifications("password", null);
+                                }
+                            }}
+                            required
+                        />
+                        <div className="col-span-full">
+                            <ActionButton
+                                type="submit"
+                                text="Change"
+                                icon={KeyIcon}
+                                className="primary ml-auto"
+                                spinner={{
+                                    isLoading: actionProgress === "password",
+                                }}
+                                disabled={actionProgress === "password"}
+                            />
+                        </div>
+                    </form>
                 )}
             </div>
         </SectionLayoutComponent>

@@ -82,7 +82,9 @@ export default function DashboardLayout({
                             />
                             <div className="">
                                 <span className="block text-lg">Cab Ride</span>
-                                <span className="block text-xs">Book Your Ride now!</span>
+                                <span className="block text-xs">
+                                    Book Your Ride now!
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -127,7 +129,7 @@ export default function DashboardLayout({
                     />
                 </div>
             </nav>
-            <div className="section-width bg-theme p-4 lg:p-5">{children}</div>
+            <div className="section-width">{children}</div>
         </main>
     );
 }

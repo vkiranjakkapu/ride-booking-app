@@ -16,6 +16,8 @@ import InputComponent from "../../components/formelements/InputComponent";
 import DashboardLayout from "../../components/layouts/DashboardLayout";
 import LoadingPortalComponent from "../../components/LoadingPortalComponent";
 import ModalComponent from "../../components/ModalComponent";
+import Notification from "../../components/notifications/Notification";
+import { useNotifications } from "../../components/notifications/useNotifications";
 import useAuthContext, {
     AuthStatus,
     RoleType,
@@ -26,7 +28,10 @@ import UserService from "../../services/UserService";
 
 export default function LandingPage() {
     const { status, login } = useAuthContext();
+
     const { addToast } = useToastNotifications();
+    const { notifications, setNotifications } = useNotifications(["login"]);
+    const modalNotifications = notifications["login"] ?? null;
 
     const [loginModal, setLoginModal] = useState<"login" | "register" | null>(
         null,
@@ -39,10 +44,22 @@ export default function LandingPage() {
         const formData = new FormData(e.currentTarget);
         login(String(formData.get("email")), String(formData.get("password")))
             .catch((e: ErrorResponse) => {
-                addToast({
+                if (e.errorCode === "500") {
+                    addToast({
+                        type: "error",
+                        message: e,
+                        useBold: true,
+                    });
+                    return;
+                }
+                setNotifications("login", {
                     type: "error",
-                    message: e,
-                    useBold: true,
+                    messages:
+                        e.validationErrors.length > 0
+                            ? e.validationErrors.map(
+                                  (ve) => `${ve.field} ${ve.message}`,
+                              )
+                            : [e.errorMessage],
                 });
             })
             .finally(() => {
@@ -79,10 +96,17 @@ export default function LandingPage() {
                 );
             })
             .catch((e: ErrorResponse) => {
-                addToast({
+                if (e.errorCode === "500") {
+                    addToast({
+                        type: "error",
+                        message: e,
+                        useBold: true,
+                    });
+                    return;
+                }
+                setNotifications("login", {
                     type: "error",
-                    message: e,
-                    useBold: true,
+                    messages: e,
                 });
             })
             .finally(() => {
@@ -112,11 +136,14 @@ export default function LandingPage() {
                     }}
                     className="space-y-3 p-1"
                 >
+                    {modalNotifications && (
+                        <Notification {...modalNotifications} />
+                    )}
                     {loginModal === "register" ? (
                         <>
                             <div className="flex flex-wrap items-center gap-3 *:flex-1">
                                 {!roleType && (
-                                    <div className="w-full! flex-auto! text-sm text-primary-accent flex items-center gap-1">
+                                    <div className="w-full! flex-auto! text-sm flex items-center gap-1">
                                         <InformationCircleIcon className="size-4" />
                                         <span>
                                             How do you want to register?
@@ -203,7 +230,7 @@ export default function LandingPage() {
                         icon={loginModal === "login" ? KeyIcon : UserPlusIcon}
                         disabled={isLoading}
                     />
-                    <p className="text-style-secondary text-center text-xs m-0">
+                    <p className="text-style-secondary text-center text-xs my-3">
                         OR
                     </p>
                     <ActionButton

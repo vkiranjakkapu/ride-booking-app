@@ -26,7 +26,7 @@ export default function ActionButton({
         <div className={`m-0.5 ${customise}`}>
             <button
                 {...props}
-                className={`flex items-center gap-1.5 text-md ${props.disabled && `pointer-events-none opacity-70`} ${props.className}`}
+                className={`flex items-center gap-1.5 text-md ${props.disabled && `pointer-events-none opacity-70`} ${spinner && spinner.isLoading ? `cursor-progress` : ``} ${props.className}`}
                 type={props.type ?? "button"}
             >
                 {spinner && spinner.isLoading ? (

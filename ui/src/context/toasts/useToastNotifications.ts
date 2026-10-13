@@ -11,6 +11,8 @@ export type NotificationContextProps = {
 
     rideUpdates: RideNotificationProps[];
     addRideNotification: (toast: RideNotificationProps) => void;
+    setActiveRide: (activeRide: RideNotificationProps) => void;
+    clearActiveRide: () => void;
 };
 
 export const NotificationContext =
