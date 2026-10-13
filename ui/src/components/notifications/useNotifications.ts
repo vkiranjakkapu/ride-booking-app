@@ -1,8 +1,8 @@
 import {
     useCallback,
-    useState,
     useEffect,
     useRef,
+    useState,
     type SetStateAction,
 } from "react";
 import type { NotificationProps } from "./Notification";
@@ -38,33 +38,27 @@ export function useNotifications<T extends string>(services: T[]) {
                 delete timeouts.current[belongs];
             }
 
+            let resolvedNextValue: NotificationProps | null = null;
+
             updateNotifications((prev) => {
-                const currentVal = prev[belongs] ?? ({} as NotificationProps);
-
-                const nextValue =
-                    typeof value === "function"
-                        ? (
-                              value as (
-                                  prevVal: NotificationProps | null,
-                              ) => NotificationProps | null
-                          )(currentVal)
-                        : value;
-
-                if (nextValue !== null) {
-                    timeouts.current[belongs] = setTimeout(() => {
-                        updateNotifications((p) => ({
-                            ...p,
-                            [belongs]: null,
-                        }));
-                        delete timeouts.current[belongs];
-                    }, durationInSeconds * 1000);
-                }
+                resolvedNextValue =
+                    typeof value === "function" ? value(prev[belongs]) : value;
 
                 return {
                     ...prev,
-                    [belongs]: nextValue,
+                    [belongs]: resolvedNextValue,
                 };
             });
+
+            if (resolvedNextValue !== null) {
+                timeouts.current[belongs] = setTimeout(() => {
+                    updateNotifications((p) => ({
+                        ...p,
+                        [belongs]: null,
+                    }));
+                    delete timeouts.current[belongs];
+                }, durationInSeconds * 1000);
+            }
         },
         [],
     );

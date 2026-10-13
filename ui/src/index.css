@@ -23,25 +23,30 @@
     }
 
     .notification {
-        @apply bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border-cyan-700 dark:border-cyan-400;
+        @apply bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border-cyan-700 outline-cyan-700 dark:border-cyan-400 dark:outline-cyan-400;
+
+        &.ride-notification.theme {
+            @apply w-full! rounded-lg! p-3! sm:px-3! shadow-lg bg-white dark:bg-dark-secondary text-primary-accent dark:text-dark-accent border-primary-accent dark:border-dark-accent/20;
+        }
+
         &.bold {
             @apply bg-cyan-500/30 text-white;
         }
 
         &.success {
-            @apply bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-700 dark:border-emerald-400;
+            @apply bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-700 outline-emerald-700 dark:border-emerald-400 dark:outline-emerald-400;
             &.bold {
                 @apply bg-emerald-500/30 text-white;
             }
         }
         &.error {
-            @apply bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-700 dark:border-rose-400;
+            @apply bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-700 outline-rose-700 dark:border-rose-400 dark:outline-rose-400;
             &.bold {
                 @apply bg-rose-500/30 text-white;
             }
         }
         &.warn {
-            @apply bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-700 dark:border-amber-400;
+            @apply bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-700 outline-amber-700 dark:border-amber-400 dark:outline-amber-400;
             &.bold {
                 @apply bg-amber-500/30 text-white;
             }
@@ -94,7 +99,7 @@
         @apply px-2 py-1 rounded border border-primary dark:border-dark-primary bg-primary dark:bg-dark-secondary text-primary-accent dark:text-dark-accent outline-primary dark:outline-dark-accent/20 outline-1 outline-offset-1 cursor-pointer;
 
         &.primary {
-            @apply px-2 py-1 rounded border bg-dark-primary dark:bg-primary text-primary dark:text-primary-accent outline-1 outline-offset-1 outline-dark-primary dark:outline-primary;
+            @apply px-2 py-1 rounded border bg-dark-primary hover:bg-dark-primary/90 dark:bg-dark-accent dark:hover:bg-dark-accent/90 text-primary dark:text-primary-accent outline-1 outline-offset-1 outline-dark-primary dark:outline-primary;
         }
 
         &.theme-success {

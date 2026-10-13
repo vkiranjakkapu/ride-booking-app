@@ -9,6 +9,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom";
 import useAuthContext, { RoleType } from "../../context/auth/useAuthContext";
+import useToastNotifications from "../../context/toasts/useToastNotifications";
 import { RoutePaths } from "../../routes/RoutePaths";
 import ActionButton from "../ActionButtonComponent";
 import type { IconProps } from "../commons";
@@ -25,6 +26,7 @@ export default function NavbarComponent({
     handleRegisterClick,
 }: NavbarComponentProps) {
     const { profile: user, isLoggedIn, logout } = useAuthContext();
+    const { clearActiveRide } = useToastNotifications();
 
     const navigate = useNavigate();
 
@@ -88,7 +90,10 @@ export default function NavbarComponent({
                     })}
                     <ActionButton
                         icon={ArrowLeftStartOnRectangleIcon}
-                        onClick={logout}
+                        onClick={() => {
+                            clearActiveRide();
+                            logout();
+                        }}
                         className={`p-1.5 rounded-full text-white bg-rose-600/80 dark:bg-rose-600/40 outline-rose-600/80 dark:outline-rose-600/40`}
                         title="Click to Logout"
                     />

@@ -82,7 +82,9 @@ export default function DashboardLayout({
                             />
                             <div className="">
                                 <span className="block text-lg">Cab Ride</span>
-                                <span className="block text-xs">Book Your Ride now!</span>
+                                <span className="block text-xs">
+                                    Book Your Ride now!
+                                </span>
                             </div>
                         </div>
                     </div>

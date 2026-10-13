@@ -6,6 +6,7 @@ import DividerComponent from "../../components/DividerComponent";
 import SectionLayoutComponent from "../../components/layouts/SectionLayoutComponent";
 import MarkerComponent from "../../components/map/MarkerComponent";
 import { DateFormatter } from "../../utils/DateFormatter";
+import { formatDurationTaken } from "../../utils/DurationFormatter";
 
 export default function RideRequestsPage() {
     return (
@@ -54,6 +55,10 @@ function RideRequestComponent({ ...props }: RideRequestComponentProps) {
             <div className="text-sm">
                 <DividerComponent text="Fare" />
                 <p>₹ 100 /-</p>
+            </div>
+            <div className="text-sm">
+                <DividerComponent text="ETC" title="Estimated Time to Complete" />
+                <p>{formatDurationTaken(209)}</p>
             </div>
             <div className="text-sm">
                 <DividerComponent text="Order time" />
