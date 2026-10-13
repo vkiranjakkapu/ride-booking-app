@@ -316,7 +316,7 @@ export default function RideBookingPage() {
                                 label={{
                                     marker: {
                                         className:
-                                            "bg-emerald-600 outline-emerald-600 outline-1! rounded-[2px] mx-0.5 size-2!",
+                                            "bg-emerald-600 outline-emerald-600 outline-1! rounded-[2.5px] mr-0.5 size-2.5!",
                                     },
                                 }}
                                 onClick={(e) => {
@@ -438,7 +438,7 @@ export default function RideBookingPage() {
                                 label={{
                                     marker: {
                                         className:
-                                            "bg-rose-400 outline-rose-400 outline-1! rounded-[2px] mx-0.5 size-2!",
+                                            "bg-rose-400 outline-rose-400 outline-1! rounded-[2.5px] mr-0.5 size-2.5!",
                                     },
                                 }}
                                 onClick={(e) => {

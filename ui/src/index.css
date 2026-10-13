@@ -96,6 +96,14 @@
         &.primary {
             @apply px-2 py-1 rounded border bg-dark-primary dark:bg-primary text-primary dark:text-primary-accent outline-1 outline-offset-1 outline-dark-primary dark:outline-primary;
         }
+
+        &.theme-success {
+            @apply bg-emerald-700 outline-emerald-700 hover:bg-emerald-800 text-white;
+        }
+
+        &.theme-danger {
+            @apply bg-red-400 outline-red-400 hover:bg-red-500 text-white;
+        }
     }
 }
 
