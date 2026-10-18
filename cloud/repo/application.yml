@@ -14,7 +14,6 @@ database:
 services:
     uri:
         identity: http://cabride-identity-service/identity/api/v1
-        maintenance: http://cabride-maintenance-service/speech/api/v1
 
 eureka:
     props:

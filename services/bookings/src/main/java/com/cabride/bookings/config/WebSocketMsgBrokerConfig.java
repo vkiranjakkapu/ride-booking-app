@@ -37,7 +37,7 @@ public class WebSocketMsgBrokerConfig implements WebSocketMessageBrokerConfigure
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.setErrorHandler(errorHandler);
-        registry.addEndpoint("/bookings/ws")
+        registry.addEndpoint("/bookings/api/v1/ws")
                 .setAllowedOrigins(StringUtils.toStringArray(properties.getCors().getAllowedOriginPatterns()));
     }
 

@@ -5,6 +5,8 @@ import {
     PaginationButtons,
     type PaginationButtonsProps,
 } from "../pagination/PaginationButtons";
+import type { SpinnerComponentProps } from "../SpinnerComponent";
+import SpinnerComponent from "../SpinnerComponent";
 
 export type SectionLayoutComponentProps = HTMLAttributes<HTMLDivElement> & {
     children: ReactNode;
@@ -13,6 +15,7 @@ export type SectionLayoutComponentProps = HTMLAttributes<HTMLDivElement> & {
     actionButtons?: ActionButtonProps[];
     pagination?: PaginationButtonsProps;
     search?: InputHTMLAttributes<HTMLInputElement>;
+    spinner?: SpinnerComponentProps;
 };
 
 export default function SectionLayoutComponent({
@@ -22,6 +25,7 @@ export default function SectionLayoutComponent({
     actionButtons,
     pagination,
     search,
+    spinner,
     ...props
 }: SectionLayoutComponentProps) {
     return (
@@ -52,7 +56,7 @@ export default function SectionLayoutComponent({
                     )}
                 </div>
             )}
-            {(pagination || search) && (
+            {((pagination && pagination.totalPages > 1) || search) && (
                 <div className="flex flex-wrap items-center justify-between">
                     <div>
                         {pagination && <PaginationButtons {...pagination} />}
@@ -64,7 +68,11 @@ export default function SectionLayoutComponent({
                     )}
                 </div>
             )}
-            {children}
+            {spinner && spinner.isLoading ? (
+                <SpinnerComponent {...spinner} />
+            ) : (
+                children || ""
+            )}
         </section>
     );
 }

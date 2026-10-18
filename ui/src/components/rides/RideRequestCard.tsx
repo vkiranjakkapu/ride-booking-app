@@ -1,15 +1,22 @@
-import { StarIcon } from "@heroicons/react/16/solid";
 import { CheckIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import type { HTMLAttributes } from "react";
-import ActionButton from "../../components/ActionButtonComponent";
-import DividerComponent from "../../components/DividerComponent";
-import RouteComponent from "../../components/RouteComponent";
+import type { Ride } from "../../services/RideService";
 import { DateFormatter } from "../../utils/DateFormatter";
 import { formatDurationTaken } from "../../utils/DurationFormatter";
+import ActionButton from "../ActionButtonComponent";
+import DividerComponent from "../DividerComponent";
+import RouteComponent from "../RouteComponent";
 
-type RideRequestComponentProps = HTMLAttributes<HTMLDivElement> & {};
+type RideRequestComponentProps = HTMLAttributes<HTMLDivElement> & {
+    ride: Ride;
+    handleAccept: (ride: Ride) => void;
+    handleDecline: (ride: Ride) => void;
+};
 
-export default function RideRequestComponent({
+export default function RideRequestCard({
+    ride,
+    handleAccept,
+    handleDecline,
     ...props
 }: RideRequestComponentProps) {
     return (
@@ -17,31 +24,22 @@ export default function RideRequestComponent({
             {...props}
             className={`flex flex-wrap items-center justify-between gap-3 md:gap-4 lg:gap-6 p-3 rounded-md border bg-primary/30 dark:bg-dark-primary *:space-y-0.5 ${props.className}`}
         >
-            <div className="order-1">
-                <DividerComponent text="Rider Details" />
-                <p>Venkata Kiran J</p>
-                <p className="text-sm font-semibold flex items-center gap-0.5">
-                    <StarIcon className="size-3" />
-                    <span>5</span>
-                </p>
-            </div>
-
             <RouteComponent className="w-full lg:w-[36ch] order-3" />
 
             <div className="text-sm order-4">
                 <DividerComponent text="Fare" />
-                <p>₹ 100 /-</p>
+                <p>₹{ride?.estimatedFare}</p>
             </div>
             <div className="text-sm order-5">
                 <DividerComponent
                     text="ETC"
                     title="Estimated Time to Complete"
                 />
-                <p>{formatDurationTaken(209)}</p>
+                <p>{formatDurationTaken(ride?.estimatedDurationSeconds)}</p>
             </div>
             <div className="text-sm order-6">
                 <DividerComponent text="Order time" />
-                <p>{DateFormatter.toFormattedDate(new Date())}</p>
+                <p>{DateFormatter.toFormattedDate(ride?.createdAt)}</p>
             </div>
             <div className="flex items-center justify-end gap-2 order-2 md:order-6 flex-1 md:flex-none">
                 <div className="text-sm">
@@ -49,6 +47,7 @@ export default function RideRequestComponent({
                     <ActionButton
                         icon={CheckIcon}
                         className="mx-auto theme-success"
+                        onClick={() => handleAccept(ride)}
                     />
                 </div>
                 <div className="text-sm">
@@ -56,6 +55,7 @@ export default function RideRequestComponent({
                     <ActionButton
                         icon={XMarkIcon}
                         className="mx-auto theme-danger"
+                        onClick={() => handleDecline(ride)}
                     />
                 </div>
             </div>

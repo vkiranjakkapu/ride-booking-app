@@ -45,7 +45,7 @@ export default function MapComponent({
 
     onMapClick,
 
-    showDirectionGuide,
+    showDirectionGuide = false,
     onRouteFound,
     ...props
 }: MapComponentProps) {

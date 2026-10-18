@@ -1,12 +1,14 @@
 import {
     CheckCircleIcon,
     ExclamationCircleIcon,
+    ExclamationTriangleIcon,
     InformationCircleIcon,
 } from "@heroicons/react/24/outline";
 import type { ErrorResponse } from "../../api/api";
+import type { NoticeTheme } from "../../context/toasts/useToastNotifications";
 
 export type NotificationProps = {
-    type: "success" | "error" | "info";
+    type?: NoticeTheme;
     messages: string | string[] | ErrorResponse;
     hideIcon?: boolean;
     customise?: string;
@@ -42,13 +44,13 @@ export default function Notification({
                 >
                     {!hideIcon &&
                         (type == "error" ? (
-                            <ExclamationCircleIcon
-                                className={`text-rose-500 size-4`}
-                            />
-                        ) : type == "info" ? (
-                            <InformationCircleIcon className="text-cyan-600 size-4" />
+                            <ExclamationCircleIcon className={`size-4`} />
+                        ) : type == "warn" ? (
+                            <ExclamationTriangleIcon className="size-4" />
+                        ) : type == "success" ? (
+                            <CheckCircleIcon className="size-4" />
                         ) : (
-                            <CheckCircleIcon className="text-emerald-500 size-4" />
+                            <InformationCircleIcon className="size-4" />
                         ))}
                     <span>{normalizedMessages.join(", ")}</span>
                 </div>
