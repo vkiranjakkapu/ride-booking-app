@@ -70,7 +70,7 @@
     .form-group {
         @apply px-2 py-1.5 m-1 rounded border bg-primary/20 dark:bg-dark-secondary flex items-center gap-1 ring-primary-accent/50 dark:ring-dark-accent/30 focus-within:border-primary-accent focus-within:ring-2 focus-within:ring-offset-0;
 
-        & :is(input, select, textarea) {
+        & :is(input, select, textarea):not(.inherit-default) {
             @apply rounded-none ring-0 border-0 py-0 px-1 bg-transparent;
         }
 
@@ -82,11 +82,11 @@
     .bg-theme {
         @apply bg-white dark:bg-dark-secondary;
 
-        & * {
-            @apply dark:border-dark-primary;
+        & *:not(button, input, select, textarea) {
+            @apply dark:border-dark-accent/20;
         }
 
-        & :where(.form-group, input, select, textarea) {
+        & :where(.form-group, input, select, textarea):not(.inherit-default) {
             @apply dark:bg-dark-primary;
         }
     }
