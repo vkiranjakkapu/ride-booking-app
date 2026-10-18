@@ -157,7 +157,7 @@ export default function ProfilePage() {
                 <form
                     key={fetchedProfile?.id ?? "loading"}
                     onSubmit={handleProfileUpdate}
-                    className="grid grid-cols-1 md:grid-cols-2 items-center gap-3 *:mb-0 p-3 border rounded"
+                    className="grid grid-cols-1 md:grid-cols-2 items-center gap-3 *:mb-0 p-3 dark:bg-dark-primary border rounded"
                 >
                     <DividerComponent
                         text="Edit Profile"
@@ -180,6 +180,7 @@ export default function ProfilePage() {
                         }}
                         name="firstName"
                         defaultValue={userProfile?.firstName ?? ""}
+                        customise="inherit-default"
                         required
                     />
                     <InputComponent
@@ -190,6 +191,7 @@ export default function ProfilePage() {
                         placeholder="enter lastname"
                         name="lastName"
                         defaultValue={userProfile?.lastName ?? ""}
+                        customise="inherit-default"
                         required
                     />
                     <InputComponent
@@ -201,6 +203,7 @@ export default function ProfilePage() {
                         placeholder="enter email"
                         name="email"
                         defaultValue={userProfile?.email ?? ""}
+                        customise="inherit-default"
                         disabled
                         required
                     />
@@ -212,6 +215,7 @@ export default function ProfilePage() {
                         placeholder="enter phone"
                         name="phone"
                         defaultValue={userProfile?.phone ?? ""}
+                        customise="inherit-default"
                         required
                     />
                     <InputComponent
@@ -223,6 +227,7 @@ export default function ProfilePage() {
                         placeholder="Date Of Birth"
                         name="dob"
                         defaultValue={userProfile?.dob ?? ""}
+                        customise="inherit-default"
                         required
                     />
                     <SelectComponent
@@ -237,6 +242,7 @@ export default function ProfilePage() {
                         }))}
                         name="gender"
                         defaultValue={userProfile?.gender ?? ""}
+                        customise="inherit-default"
                         required
                     />
                     <div className="col-span-full text-end">
@@ -255,7 +261,7 @@ export default function ProfilePage() {
                 {!userId && (
                     <form
                         onSubmit={handlePasswordChange}
-                        className="grid grid-cols-1 gap-3 items-center p-3 border rounded"
+                        className="grid grid-cols-1 gap-3 items-center p-3 dark:bg-dark-primary border rounded"
                     >
                         <DividerComponent
                             text="Old Password"
@@ -278,6 +284,7 @@ export default function ProfilePage() {
                             id="currentPass"
                             placeholder="Authenticate"
                             name="oldPassword"
+                            customise="inherit-default"
                             required
                         />
                         <div className=""></div>
@@ -316,6 +323,7 @@ export default function ProfilePage() {
                                     setNotifications("password", null);
                                 }
                             }}
+                            customise="inherit-default"
                             required
                         />
                         <InputComponent
@@ -348,6 +356,7 @@ export default function ProfilePage() {
                                     setNotifications("password", null);
                                 }
                             }}
+                            customise="inherit-default"
                             required
                         />
                         <div className="col-span-full">
