@@ -1,12 +1,10 @@
-import {
-    ChatBubbleLeftRightIcon,
-    PhoneIcon,
-} from "@heroicons/react/24/outline";
+import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/outline";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import type { ActiveRideNotificationProps } from "../../components/ActiveRideNotification";
+import type { ErrorResponse } from "../../api/api";
 import SectionLayoutComponent from "../../components/layouts/SectionLayoutComponent";
 import Notification from "../../components/notifications/Notification";
+import { useNotifications } from "../../components/notifications/useNotifications";
 import RideRequestCard from "../../components/rides/RideRequestCard";
 import useToastNotifications from "../../context/toasts/useToastNotifications";
 import { RoutePaths } from "../../routes/RoutePaths";
@@ -15,66 +13,146 @@ import RideService from "../../services/RideService";
 
 export default function RideRequestsPage() {
     const navigate = useNavigate();
-    const { setActiveRide } = useToastNotifications();
+
+    const { getActiveRide, setActiveRide, setActiveRideNotification } =
+        useToastNotifications();
+
+    const { notifications, setNotifications } = useNotifications(["info"]);
+    const infoNotifications = notifications["info"];
 
     const [availableRides, setAvailableRides] = useState<Ride[]>([]);
 
-    const fetchAvailableRides = useCallback((ride: Ride) => {
-        setAvailableRides((prev) => [...prev, ride]);
+    const [ridesFetchInProgress, setRidesFetchInProgress] = useState<boolean>(
+        () => {
+            return getActiveRide ? false : true;
+        },
+    );
+    const fetchAvailableRides = useCallback(() => {
+        RideService.getAvailableRideRequests<Ride[]>()
+            .then((resp) => {
+                setAvailableRides(resp.data);
+            })
+            .finally(() => {
+                setRidesFetchInProgress(false);
+            });
     }, []);
 
     useEffect(() => {
-        // fetchAvailableRides();
-    }, [fetchAvailableRides]);
+        if (getActiveRide) {
+            setNotifications("info", {
+                type: "warn",
+                messages:
+                    "You can't accept other rides, while one in progress.",
+            });
+            return;
+        }
 
+        fetchAvailableRides();
+    }, [getActiveRide, fetchAvailableRides, setNotifications]);
+
+    const [actionProgress, setActionProgress] = useState<
+        "accept" | "decline" | null
+    >(null);
     const handleAccept = (ride: Ride) => {
+        setActionProgress("accept");
         RideService.acceptRide<Ride>(ride.id)
             .then((resp) => {
-                setActiveRide({
-                    user: "rider",
+                setActiveRide(resp.data);
+                setActiveRideNotification({
+                    showDetailsOf: "rider",
                     ride: resp.data,
-                    contactOptions: [
-                        {
-                            icon: PhoneIcon,
-                            className: "theme-success",
-                        },
-                        {
-                            icon: ChatBubbleLeftRightIcon,
-                            className: "primary",
-                        },
-                    ],
-                } as ActiveRideNotificationProps);
+                });
+                navigate(RoutePaths.ENROUTE.replace(":rideId", ride.id));
+            })
+            .catch((e: ErrorResponse) => {
+                setNotifications("info", {
+                    type: "error",
+                    messages: e,
+                });
             })
             .finally(() => {
-                navigate(RoutePaths.ENROUTE.replace(":rideId", ride.id));
+                setActionProgress(null);
             });
     };
 
     const handleDecline = (ride: Ride) => {
-        RideService.declineRequest(ride.id).then(() => {
-            setAvailableRides((prev) => prev.filter((rd) => rd.id != ride.id));
-        });
+        setActionProgress("decline");
+        RideService.declineRequest(ride.id)
+            .then(() => {
+                setAvailableRides((prev) =>
+                    prev.filter((rd) => rd.id != ride.id),
+                );
+            })
+            .catch((e: ErrorResponse) => {
+                setNotifications("info", {
+                    type: "error",
+                    messages: e,
+                });
+            })
+            .finally(() => {
+                setActionProgress(null);
+            });
     };
 
     return (
         <SectionLayoutComponent
             title="Awaiting Pickup"
             description="Accept the ride to start pickup"
+            spinner={{
+                isLoading: ridesFetchInProgress,
+            }}
+            actionButtons={
+                getActiveRide
+                    ? [
+                          {
+                              icon: ArrowTopRightOnSquareIcon,
+                              text: "Active Ride",
+                              className: "primary",
+                              onClick() {
+                                  navigate(
+                                      RoutePaths.ENROUTE.replace(
+                                          ":rideId",
+                                          getActiveRide.id,
+                                      ),
+                                  );
+                              },
+                          },
+                      ]
+                    : undefined
+            }
         >
-            {availableRides.length > 0 ? (
-                availableRides.map((ride) => (
-                    <div className="space-y-3">
-                        <RideRequestCard
-                            key={ride.id}
-                            ride={ride}
-                            handleAccept={handleAccept}
-                            handleDecline={handleDecline}
-                        />
-                    </div>
-                ))
-            ) : (
-                <Notification messages={"No ride requests at this moment."} />
-            )}
+            <div className="space-y-3">
+                {infoNotifications && <Notification {...infoNotifications} />}
+
+                {availableRides.length > 0
+                    ? availableRides.map((ride) => (
+                          <RideRequestCard
+                              key={ride.id}
+                              ride={ride}
+                              aceeptButton={{
+                                  spinner: {
+                                      isLoading: actionProgress === "accept",
+                                  },
+                                  onClick(ride) {
+                                      handleAccept(ride);
+                                  },
+                              }}
+                              declineButton={{
+                                  spinner: {
+                                      isLoading: actionProgress === "decline",
+                                  },
+                                  onClick(ride) {
+                                      handleDecline(ride);
+                                  },
+                              }}
+                          />
+                      ))
+                    : !getActiveRide && (
+                          <Notification
+                              messages={"No ride requests at this moment."}
+                          />
+                      )}
+            </div>
         </SectionLayoutComponent>
     );
 }

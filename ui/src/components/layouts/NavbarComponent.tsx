@@ -7,9 +7,8 @@ import {
     UserIcon,
     UserPlusIcon,
 } from "@heroicons/react/24/outline";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import useAuthContext, { RoleType } from "../../context/auth/useAuthContext";
-import useToastNotifications from "../../context/toasts/useToastNotifications";
 import { RoutePaths } from "../../routes/RoutePaths";
 import ActionButton from "../ActionButtonComponent";
 import type { IconProps } from "../commons";
@@ -26,13 +25,14 @@ export default function NavbarComponent({
     handleRegisterClick,
 }: NavbarComponentProps) {
     const { profile: user, isLoggedIn, logout } = useAuthContext();
-    const { clearActiveRide } = useToastNotifications();
 
     const navigate = useNavigate();
+    const location = useLocation();
 
     const navItems: {
         page: string;
         uri: string;
+        variants?: string[];
         icon: IconProps;
         roles?: RoleType[];
     }[] = [
@@ -40,18 +40,28 @@ export default function NavbarComponent({
             page: "Dashboard",
             uri: RoutePaths.DASHBOARD,
             icon: ChartBarIcon,
+            roles: [RoleType.DRIVER, RoleType.ADMIN],
+        },
+        {
+            page: "Booking",
+            uri: RoutePaths.DASHBOARD,
+            variants: [RoutePaths.ENROUTE],
+            roles: [RoleType.RIDER],
+            icon: TicketIcon,
         },
         {
             page: "Rides",
             uri: RoutePaths.RIDE_REQUESTS,
+            variants: [RoutePaths.ENROUTE],
             icon: BellAlertIcon,
             roles: [RoleType.DRIVER],
         },
         {
             page: "Booking",
             uri: RoutePaths.BOOKING,
+            variants: [RoutePaths.ENROUTE],
             icon: TicketIcon,
-            roles: [RoleType.RIDER, RoleType.ADMIN],
+            roles: [RoleType.ADMIN],
         },
         {
             page: "History",
@@ -74,9 +84,23 @@ export default function NavbarComponent({
                     {navItems.map((item, idx) => {
                         if (item.roles) {
                             if (!item.roles.includes(user.roles[0])) {
-                                return;
+                                return null;
                             }
                         }
+
+                        const isCurrentPath =
+                            location.pathname === item.uri ||
+                            location.pathname.startsWith(`${item.uri}/`);
+
+                        const hasMatchingVariant = item.variants?.some((vr) => {
+                            const regexPattern =
+                                "^" + vr.replace(/:\w+/g, "[^/]+") + "$";
+                            return new RegExp(regexPattern).test(
+                                location.pathname,
+                            );
+                        });
+
+                        const active = isCurrentPath || hasMatchingVariant;
 
                         return (
                             <ActionButton
@@ -84,16 +108,13 @@ export default function NavbarComponent({
                                 icon={item.icon}
                                 text={item.page}
                                 onClick={() => navigate(item.uri)}
-                                className={`rounded-full text-sm ${location.pathname.startsWith(item.uri) || location.pathname.match(item.uri) ? `primary` : ``}`}
+                                className={`rounded-full text-sm ${active ? `primary` : ``}`}
                             />
                         );
                     })}
                     <ActionButton
                         icon={ArrowLeftStartOnRectangleIcon}
-                        onClick={() => {
-                            clearActiveRide();
-                            logout();
-                        }}
+                        onClick={logout}
                         className={`p-1.5 rounded-full text-white bg-rose-600/80 dark:bg-rose-600/40 outline-rose-600/80 dark:outline-rose-600/40`}
                         title="Click to Logout"
                     />

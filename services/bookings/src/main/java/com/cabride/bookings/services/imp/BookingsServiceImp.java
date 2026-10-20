@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.cabride.bookings.dto.RideResponse;
+import com.cabride.bookings.enums.RideStatus;
 import com.cabride.bookings.repositories.RideRepository;
 import com.cabride.bookings.services.BookingsService;
 import com.cabride.bookings.services.CurrentUserService;
@@ -22,11 +23,12 @@ public class BookingsServiceImp implements BookingsService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<RideResponse> myRides() {
+    public List<RideResponse> getAllRides() {
         UUID userId = currentUser.userId();
 
         return (currentUser.isDriver() ? rideRepository.findByDriverIdOrderByCreatedAtDesc(userId)
-                : rideRepository.findByRiderIdOrderByCreatedAtDesc(userId))
+                : currentUser.isRider() ? rideRepository.findByRiderIdOrderByCreatedAtDesc(userId)
+                        : rideRepository.findByStatusOrderByCreatedAtAsc(RideStatus.COMPLETED))
                 .stream().map(RideResponse::from).toList();
     }
 }

@@ -16,6 +16,10 @@ public class BusinessException extends RuntimeException {
         super(message);
     }
 
+    public BusinessException(ErrorDefinition definition) {
+        this.definition = definition;
+    }
+
     public BusinessException(ErrorDefinition definition, String message) {
         super(message);
         this.definition = definition;

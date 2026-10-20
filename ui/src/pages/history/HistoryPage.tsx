@@ -21,9 +21,9 @@ export default function HistoryPage() {
                 setHistory(resp.data);
             })
             .catch((e: ErrorResponse) => {
-                if (e.errorCode === "500") {
+                if (e.errorCode === "503") {
                     setNotifications("history", {
-                        type: "error",
+                        type: "warn",
                         messages:
                             "We are facing unexpected issues, please try again later.",
                     });
@@ -31,7 +31,7 @@ export default function HistoryPage() {
                 }
 
                 setNotifications("history", {
-                    type: "warn",
+                    type: "error",
                     messages: e.errorMessage,
                 });
             })

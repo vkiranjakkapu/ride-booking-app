@@ -4,7 +4,8 @@ import com.platform.web.exception.ErrorDefinition;
 
 public enum BookingErrors implements ErrorDefinition {
     RIDE_CONFLICT("RIDE_CONFLICT", "BUS-0001", "Conflict in ride update."),
-    RESOURCE_NOT_FOUND("RESOURCE_NOT_FOUND", "BUS-0002", "Resource not found");
+    RESOURCE_NOT_FOUND("RESOURCE_NOT_FOUND", "BUS-0002", "Resource not found"),
+    INVALID_OTP("INVALID_OTP", "BUS-0003", "Invalid OTP.");
 
     private String errorName;
     private String errorCode;

@@ -11,21 +11,20 @@ import LandingPage from "../pages/landing/LandingPage";
 import ProfilePage from "../pages/profile/ProfilePage";
 import RideRequestsPage from "../pages/ride-requests/RideRequestsPage";
 import { RoutePaths } from "./RoutePaths";
+import NonDriverLayout from "../layouts/NonDriverLayout";
 
 export default function AppRoutes() {
     return (
         <Routes>
             <Route element={<PublicLayout />}>
-                <Route
-                    path={RoutePaths.LANDING}
-                    element={<LandingPage />}
-                />
+                <Route path={RoutePaths.LANDING} element={<LandingPage />} />
             </Route>
             <Route element={<ProtectedLayout />}>
                 <Route
                     path={RoutePaths.DASHBOARD}
                     element={<DashboardPage />}
                 />
+                <Route path={RoutePaths.ENROUTE} element={<EnroutePage />} />
                 <Route path={RoutePaths.MANAGE} element={<ProfilePage />} />
                 <Route path={RoutePaths.HISTORY} element={<HistoryPage />} />
 
@@ -36,13 +35,16 @@ export default function AppRoutes() {
                     />
                 </Route>
 
-                <Route element={<RiderLayout />}>
+                <Route element={<NonDriverLayout />}>
                     <Route
                         path={RoutePaths.BOOKING}
                         element={<RideBookingPage />}
                     />
+                </Route>
+
+                <Route element={<RiderLayout />}>
                     <Route
-                        path={RoutePaths.ENROUTE}
+                        path={RoutePaths.RIDER_DASHBOARD}
                         element={<EnroutePage />}
                     />
                 </Route>

@@ -54,8 +54,8 @@ export default function RideSummaryComponent({
                 <hr />
                 {(ride || estimatedFare) && (
                     <p className="capitalize">
-                        <b className="uppercase text-xs">Fare : </b>₹{" "}
-                        {estimatedFare ?? ride?.estimatedFare ?? "..."}
+                        <b className="uppercase text-xs">Fare : </b>
+                        {`₹ ${estimatedFare ?? ride?.estimatedFare ?? "..."}`}
                     </p>
                 )}
                 <p className="capitalize">

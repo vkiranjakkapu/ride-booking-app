@@ -2,10 +2,11 @@ export const RoutePaths = {
     LANDING: "/",
 
     DASHBOARD: "/dashboard",
+    RIDER_DASHBOARD: "/dashboard/:rideId",
     RIDE_REQUESTS: "/rides",
 
     BOOKING: "/booking",
-    ENROUTE: "/booking/:rideId",
+    ENROUTE: "/rides/:rideId",
 
     HISTORY: "/history",
 

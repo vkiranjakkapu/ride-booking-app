@@ -6,6 +6,6 @@ import com.cabride.bookings.dto.RideResponse;
 
 public interface BookingsService {
 
-    List<RideResponse> myRides();
+    List<RideResponse> getAllRides();
 
 }

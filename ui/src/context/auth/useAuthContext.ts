@@ -1,4 +1,9 @@
-import { createContext, useContext, type Dispatch, type SetStateAction } from "react";
+import {
+    createContext,
+    useContext,
+    type Dispatch,
+    type SetStateAction,
+} from "react";
 import type { LoginResponse } from "../../services/AuthService";
 
 export type UserProfile = {
@@ -8,6 +13,7 @@ export type UserProfile = {
     gender: UserGender;
     firstName: string;
     lastName: string;
+    vehicleNumber: string;
     phone: string;
     address: Address;
     dob: string;

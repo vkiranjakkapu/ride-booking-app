@@ -1,5 +1,6 @@
 import {
     ArrowsUpDownIcon,
+    ClockIcon,
     MagnifyingGlassIcon,
     PaperAirplaneIcon,
     ViewfinderCircleIcon,
@@ -22,6 +23,7 @@ import RideSummaryComponent from "../../components/map/RideSummaryComponent";
 import SearchResultsComponent from "../../components/map/SearchResultsComponent";
 import Notification from "../../components/notifications/Notification";
 import { useNotifications } from "../../components/notifications/useNotifications";
+import useToastNotifications from "../../context/toasts/useToastNotifications";
 import { RoutePaths } from "../../routes/RoutePaths";
 import type { Ride } from "../../services/RideService";
 import RideService from "../../services/RideService";
@@ -294,9 +296,46 @@ export default function RideBookingPage() {
      * * =======================================
      */
     const [routeSummary, setRouteSummary] = useState<RouteSummary | null>(null);
-    const handleRouteFound = useCallback((summary: RouteSummary) => {
-        setRouteSummary(summary);
-    }, []);
+
+    const [fare, setFare] = useState<number | null>(null);
+    const [fareFetchInProgress, setFareFetchInProgress] =
+        useState<boolean>(false);
+    const fareRequestRef = useRef<number>(0);
+    const handleRouteFound = useCallback(
+        (summary: RouteSummary) => {
+            setRouteSummary(summary);
+
+            const requestId = ++fareRequestRef.current;
+
+            setFareFetchInProgress(true);
+            RideService.getFare<number>(summary.distanceInMeters!)
+                .then((resp) => {
+                    if (fareRequestRef.current != requestId) return;
+
+                    setFare(resp.data);
+                })
+                .catch((e: ErrorResponse) => {
+                    if (fareRequestRef.current != requestId) return;
+                    console.log(e);
+
+                    setNotifications(
+                        "booking",
+                        {
+                            type: "warn",
+                            messages:
+                                "There was an error while getting ride amount. You can still continue with your booking if you want to proceed.",
+                        },
+                        10,
+                    );
+                })
+                .finally(() => {
+                    if (fareRequestRef.current === requestId) {
+                        setFareFetchInProgress(false);
+                    }
+                });
+        },
+        [setNotifications],
+    );
 
     /**
      * * =======================================
@@ -305,7 +344,17 @@ export default function RideBookingPage() {
      */
     const navigate = useNavigate();
     const [bookingInProgress, setBookingInProgress] = useState(false);
+    const { getActiveRide, setActiveRide, setActiveRideNotification } =
+        useToastNotifications();
     function requestRide() {
+        if (getActiveRide) {
+            setNotifications("booking", {
+                type: "error",
+                messages: "Can't request another ride while one in progress.",
+            });
+            return;
+        }
+
         if (
             !destination ||
             !routeSummary ||
@@ -347,6 +396,11 @@ export default function RideBookingPage() {
                     type: "success",
                     messages:
                         "Ride requested successfully. You can follow its status in Ride History.",
+                });
+                setActiveRide(resp.data);
+                setActiveRideNotification({
+                    ride: resp.data,
+                    showDetailsOf: "driver",
                 });
                 navigate(RoutePaths.ENROUTE.replace(":rideId", resp.data.id));
             })
@@ -568,23 +622,33 @@ export default function RideBookingPage() {
                     {routeSummary != null && (
                         <RideSummaryComponent
                             summary={routeSummary}
+                            estimatedFare={fare ?? undefined}
                             className="*:p-3"
                         />
                     )}
 
                     <ActionButton
-                        text="Confirm Booking"
-                        icon={PaperAirplaneIcon}
+                        text={
+                            !getActiveRide
+                                ? "Confirm Booking"
+                                : "Other Ride in Progress"
+                        }
+                        icon={!getActiveRide ? PaperAirplaneIcon : ClockIcon}
                         className="primary w-full justify-center"
                         spinner={{
                             isLoading: bookingInProgress,
                         }}
                         onClick={requestRide}
-                        disabled={!routeSummary || bookingInProgress}
+                        disabled={
+                            !routeSummary ||
+                            bookingInProgress ||
+                            fareFetchInProgress ||
+                            getActiveRide != null
+                        }
                     />
                 </div>
                 <MapComponent
-                    className="border lg:w-4/6 order-1 lg:order-2"
+                    className="border lg:w-4/6 order-1 lg:order-2 *:rounded-md"
                     pickup={pickup}
                     destination={destination ?? undefined}
                     onMapClick={handleMapSelection}

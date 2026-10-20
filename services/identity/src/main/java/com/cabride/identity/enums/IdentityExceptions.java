@@ -6,11 +6,12 @@ public enum IdentityExceptions implements ErrorDefinition {
 
     // * Security Errors
     BAD_CREDENTIALS("BAD_CREDENTIALS", "SEC-4013", "Invalid Credentials Supplied."),
-    
+
     // * User Errors
     USER_NOT_FOUND("USER_NOT_FOUND", "BUS-2002", "User with given details not found in records"),
     REGISTRATION_ERROR("REGISTRATION_ERROR", "BUS-2006", "Resource already exists in records."),
-    DUPLICATE_RESOURCE_FOUND("DUPLICATE_RESOURCE_FOUND", "BUS-2007", "Resource already exists in records.");
+    DUPLICATE_RESOURCE_FOUND("DUPLICATE_RESOURCE_FOUND", "BUS-2007", "Resource already exists in records."),
+    USER_NOT_DRIVER("USER_NOT_DRIVER", "BUS-2008", "You are not registered as a driver.");
 
     private final String errorName;
     private final String errorCode;

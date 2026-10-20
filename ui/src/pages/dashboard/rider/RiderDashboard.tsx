@@ -1,3 +1,5 @@
+import RideBookingPage from "../../booking/RideBookingPage";
+
 export default function RiderDashboard() {
-    return <>Rider Dashboard</>
+    return <RideBookingPage />;
 }

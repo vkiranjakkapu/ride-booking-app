@@ -182,6 +182,16 @@ public class UserServiceImpl implements UserService {
 		user.setGender(request.gender());
 		user.setEnabled(Optional.ofNullable(request.enabled()).orElse(user.isEnabled()));
 
+		Optional.ofNullable(request.vehicleNumber()).ifPresent(vehicleNumber -> {
+			if (!user.getAuthorities().stream().map(auth -> auth.getAuthority()).toList()
+					.contains("ROLE_" + RoleType.DRIVER.name())) {
+				throw new BusinessException(IdentityExceptions.USER_NOT_DRIVER,
+						"Vehicle number is required only for drivers.");
+			}
+
+			user.setVehicleNumber(vehicleNumber);
+		});
+
 		return mapToResponse(userRepository.save(user));
 	}
 
@@ -223,6 +233,7 @@ public class UserServiceImpl implements UserService {
 				.id(user.getId())
 				.firstName(user.getFirstName())
 				.lastName(user.getLastName())
+				.vehicleNumber(user.getVehicleNumber())
 				.email(user.getEmail())
 				.phone(user.getPhone())
 				.gender(user.getGender())
@@ -244,6 +255,7 @@ public class UserServiceImpl implements UserService {
 				.id(user.getId())
 				.firstName(user.getFirstName())
 				.lastName(user.getLastName())
+				.vehicleNumber(user.getVehicleNumber())
 				.email(user.getEmail())
 				.phone(user.getPhone())
 				.gender(user.getGender())

@@ -4,8 +4,8 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
+import com.cabride.bookings.enums.RideStatus;
 import com.cabride.bookings.models.Ride;
-import com.cabride.bookings.models.RideStatus;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -31,6 +31,7 @@ public class RideResponse {
     private String driverName;
     private String driverPhone;
     private String driverEmail;
+    private String vehicleNumber;
 
     private String pickupAddress;
     private double pickupLatitude;
@@ -67,6 +68,7 @@ public class RideResponse {
                 null,
                 null,
                 null,
+                null,
 
                 ride.getPickupAddress(), ride.getPickupLatitude(), ride.getPickupLongitude(),
                 ride.getDestinationAddress(), ride.getDestinationLatitude(), ride.getDestinationLongitude(),
@@ -78,6 +80,7 @@ public class RideResponse {
     public static RideResponse from(RideResponse ride, UserResponseDto rider, UserResponseDto driver) {
         return new RideResponse(
                 ride.getId(),
+
                 ride.getRiderId(),
                 rider.firstName() + " " + rider.lastName(),
                 rider.email(),
@@ -87,6 +90,7 @@ public class RideResponse {
                 driver.firstName() + " " + driver.lastName(),
                 driver.email(),
                 driver.phone(),
+                driver.vehicleNumber(),
 
                 ride.getPickupAddress(), ride.getPickupLatitude(), ride.getPickupLongitude(),
                 ride.getDestinationAddress(), ride.getDestinationLatitude(), ride.getDestinationLongitude(),

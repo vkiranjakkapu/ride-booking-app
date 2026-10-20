@@ -3,20 +3,24 @@ import type { HTMLAttributes } from "react";
 import type { Ride } from "../../services/RideService";
 import { DateFormatter } from "../../utils/DateFormatter";
 import { formatDurationTaken } from "../../utils/DurationFormatter";
-import ActionButton from "../ActionButtonComponent";
+import ActionButton, { type ActionButtonProps } from "../ActionButtonComponent";
 import DividerComponent from "../DividerComponent";
 import RouteComponent from "../RouteComponent";
 
 type RideRequestComponentProps = HTMLAttributes<HTMLDivElement> & {
     ride: Ride;
-    handleAccept: (ride: Ride) => void;
-    handleDecline: (ride: Ride) => void;
+    aceeptButton: Omit<ActionButtonProps, "onClick"> & {
+        onClick: (ride: Ride) => void;
+    };
+    declineButton: Omit<ActionButtonProps, "onClick"> & {
+        onClick?: (ride: Ride) => void;
+    };
 };
 
 export default function RideRequestCard({
     ride,
-    handleAccept,
-    handleDecline,
+    aceeptButton,
+    declineButton,
     ...props
 }: RideRequestComponentProps) {
     return (
@@ -24,11 +28,15 @@ export default function RideRequestCard({
             {...props}
             className={`flex flex-wrap items-center justify-between gap-3 md:gap-4 lg:gap-6 p-3 rounded-md border bg-primary/30 dark:bg-dark-primary *:space-y-0.5 ${props.className}`}
         >
-            <RouteComponent className="w-full lg:w-[36ch] order-3" />
+            <RouteComponent
+                className="w-full lg:flex-1 order-3"
+                pickup={ride.pickupAddress}
+                destination={ride.destinationAddress}
+            />
 
             <div className="text-sm order-4">
                 <DividerComponent text="Fare" />
-                <p>₹{ride?.estimatedFare}</p>
+                <p>{`₹ ${ride?.estimatedFare}`}</p>
             </div>
             <div className="text-sm order-5">
                 <DividerComponent
@@ -47,7 +55,10 @@ export default function RideRequestCard({
                     <ActionButton
                         icon={CheckIcon}
                         className="mx-auto theme-success"
-                        onClick={() => handleAccept(ride)}
+                        {...aceeptButton}
+                        onClick={() => {
+                            aceeptButton.onClick?.(ride);
+                        }}
                     />
                 </div>
                 <div className="text-sm">
@@ -55,7 +66,10 @@ export default function RideRequestCard({
                     <ActionButton
                         icon={XMarkIcon}
                         className="mx-auto theme-danger"
-                        onClick={() => handleDecline(ride)}
+                        {...declineButton}
+                        onClick={() => {
+                            declineButton.onClick?.(ride);
+                        }}
                     />
                 </div>
             </div>

@@ -188,6 +188,7 @@ class UserControllerTest {
 				"",
 				"",
 				"",
+				"",
 				UserGender.NON_DISCLOSED,
 				null,
 				null,
@@ -223,6 +224,7 @@ class UserControllerTest {
 		return new UpdateUserRequest(
 				"John",
 				"Doe",
+				"AB01CD2345",
 				"8888888888",
 				UserGender.NON_DISCLOSED,
 				LocalDate.of(2001, 3, 1),
@@ -241,6 +243,7 @@ class UserControllerTest {
 				UUID.fromString("c0186249-9fc1-4927-97b3-a08a21febfe3"),
 				"john@test.com",
 				"John",
+				"",
 				"Doe",
 				"9999999999",
 				UserGender.NON_DISCLOSED,

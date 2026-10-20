@@ -2,10 +2,13 @@ package com.cabride.bookings.services.imp;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -16,13 +19,15 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import com.cabride.bookings.dto.CreateRideRequest;
 import com.cabride.bookings.dto.RideResponse;
 import com.cabride.bookings.enums.BookingErrors;
+import com.cabride.bookings.enums.RideStatus;
 import com.cabride.bookings.exceptions.BusinessException;
+import com.cabride.bookings.exceptions.SecurityException;
 import com.cabride.bookings.models.Ride;
-import com.cabride.bookings.models.RideStatus;
 import com.cabride.bookings.properties.BookingProperties;
 import com.cabride.bookings.repositories.RideRepository;
 import com.cabride.bookings.services.CurrentUserService;
 import com.cabride.bookings.services.RideBookingService;
+import com.platform.web.exception.SecurityExceptions;
 
 import lombok.RequiredArgsConstructor;
 
@@ -37,6 +42,21 @@ public class RideBookingServiceImp implements RideBookingService {
 
     private final CurrentUserService currentUser;
 
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+
+    @Override
+    public Optional<RideResponse> activeRide() {
+        UUID userId = currentUser.userId();
+        return (currentUser.isDriver() ? rideRepository
+                .findFirstByDriverIdAndStatusInOrderByUpdatedAtDesc(userId,
+                        List.of(RideStatus.REQUESTED, RideStatus.ACCEPTED, RideStatus.IN_PROGRESS, RideStatus.PAID))
+                : rideRepository
+                        .findFirstByRiderIdAndStatusInOrderByUpdatedAtDesc(userId,
+                                List.of(RideStatus.REQUESTED, RideStatus.ACCEPTED, RideStatus.IN_PROGRESS,
+                                        RideStatus.PAID)))
+                .map(ride -> RideResponse.from(ride));
+    }
+
     @Override
     @Transactional
     public RideResponse create(CreateRideRequest request) {
@@ -49,6 +69,7 @@ public class RideBookingServiceImp implements RideBookingService {
         }
         Ride ride = new Ride();
         ride.setRiderId(currentUser.userId());
+        ride.setOtp(generateOtp());
         ride.setPickupAddress(request.pickupAddress().trim());
         ride.setPickupLatitude(request.pickupLatitude());
         ride.setPickupLongitude(request.pickupLongitude());
@@ -61,16 +82,16 @@ public class RideBookingServiceImp implements RideBookingService {
         ride.setStatus(RideStatus.REQUESTED);
         Ride saved = rideRepository.saveAndFlush(ride);
         RideResponse response = RideResponse.from(saved);
+
+        // Hiding rider details until ride acceptance
+        response.setRiderId(null);
+
         afterCommit(() -> messagingTemplate.convertAndSend("/topic/ride-requests", response));
         return response;
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<RideResponse> availableRideRequests() {
-        return rideRepository.findByStatusOrderByCreatedAtAsc(RideStatus.REQUESTED).stream()
-                .filter(ride -> !ride.getDeclinedDriverIds().contains(currentUser.userId()))
-                .map(RideResponse::from).toList();
+    private int generateOtp() {
+        return 100_000 + SECURE_RANDOM.nextInt(900_000);
     }
 
     @Override
@@ -82,24 +103,58 @@ public class RideBookingServiceImp implements RideBookingService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public Integer getRideOtp(UUID rideId) {
+        Ride ride = find(rideId);
+        if (!ride.getRiderId().equals(currentUser.userId())) {
+            throw new SecurityException(SecurityExceptions.FORBIDDEN_ACCESS);
+        }
+        return ride.getOtp();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<RideResponse> availableRideRequests() {
+        return rideRepository.findByStatusOrderByCreatedAtAsc(RideStatus.REQUESTED).stream()
+                .filter(ride -> !ride.getDeclinedDriverIds().contains(currentUser.userId()))
+                .map(RideResponse::from).toList();
+    }
+
+    @Override
     @Transactional
     public RideResponse acceptRide(UUID rideId) {
         Ride ride = findForUpdate(rideId);
         UUID driverId = currentUser.userId();
 
-        if (ride.getStatus() != RideStatus.REQUESTED) {
+        if (ride.getStatus() != RideStatus.REQUESTED && ride.getStatus() != RideStatus.ACCEPTED) {
             throw new BusinessException(BookingErrors.RIDE_CONFLICT, "This ride is no longer available.");
         }
         if (ride.getDeclinedDriverIds().contains(driverId)) {
             throw new BusinessException(BookingErrors.RIDE_CONFLICT, "You have already declined this ride.");
         }
+
         ride.setDriverId(driverId);
 
         ride.setAcceptedAt(Instant.now());
-        ride.setStartedAt(Instant.now());
-        ride.setStatus(RideStatus.IN_PROGRESS);
+        ride.setStatus(RideStatus.ACCEPTED);
         Ride saved = rideRepository.saveAndFlush(ride);
-        notifyParticipants(saved);
+
+        return RideResponse.from(saved);
+    }
+
+    @Transactional
+    public RideResponse start(UUID rideId, Integer otp) {
+        Ride ride = findForUpdate(rideId);
+
+        if (!ride.getOtp().equals(otp)) {
+            throw new BusinessException(BookingErrors.INVALID_OTP);
+        }
+
+        requireDriver(ride, currentUser.userId());
+        requireStatus(ride, RideStatus.ACCEPTED, "Only an accepted ride can be started.");
+        ride.setStatus(RideStatus.IN_PROGRESS);
+        ride.setStartedAt(Instant.now());
+        Ride saved = rideRepository.saveAndFlush(ride);
         return RideResponse.from(saved);
     }
 
@@ -115,18 +170,31 @@ public class RideBookingServiceImp implements RideBookingService {
     }
 
     @Override
+    public RideResponse updatePayment(UUID rideId) {
+        Ride ride = find(rideId);
+        if (!ride.getRiderId().equals(currentUser.userId())) {
+            throw new SecurityException(SecurityExceptions.FORBIDDEN_ACCESS,
+                    "Only the rider who requested this ride can pay for this ride.");
+        }
+        ride.setStatus(RideStatus.PAID);
+
+        return RideResponse.from(rideRepository.saveAndFlush(ride));
+    }
+
+    @Override
     @Transactional
     public RideResponse completeRide(UUID rideId) {
         Ride ride = findForUpdate(rideId);
 
         requireDriver(ride, currentUser.userId());
-        requireStatus(ride, RideStatus.IN_PROGRESS, "Only an in-progress ride can be completed.");
+        requireStatus(ride, RideStatus.PAID,
+                "Only an paid ride can be completed.");
 
         ride.setStatus(RideStatus.COMPLETED);
         ride.setCompletedAt(Instant.now());
         ride.setFinalFare(ride.getEstimatedFare());
         Ride saved = rideRepository.saveAndFlush(ride);
-        notifyParticipants(saved);
+
         return RideResponse.from(saved);
     }
 
@@ -134,20 +202,21 @@ public class RideBookingServiceImp implements RideBookingService {
     @Transactional
     public RideResponse cancelRide(UUID rideId) {
         Ride ride = findForUpdate(rideId);
+        if (ride.getStatus() != RideStatus.REQUESTED) {
+            throw new BusinessException(BookingErrors.RIDE_CONFLICT, "This ride can no longer be cancelled.");
+        }
         if (!ride.getRiderId().equals(currentUser.userId())) {
             throw new AccessDeniedException("Only the rider who created this ride can cancel it.");
-        }
-        if (ride.getStatus() != RideStatus.REQUESTED && ride.getStatus() != RideStatus.ACCEPTED) {
-            throw new BusinessException(BookingErrors.RIDE_CONFLICT, "This ride can no longer be cancelled.");
         }
         ride.setStatus(RideStatus.CANCELLED);
         ride.setCancelledAt(Instant.now());
         Ride saved = rideRepository.saveAndFlush(ride);
-        notifyParticipants(saved);
+
         return RideResponse.from(saved);
     }
 
-    private BigDecimal calculateFare(double distanceMeters) {
+    @Override
+    public BigDecimal calculateFare(double distanceMeters) {
         BigDecimal distanceKm = BigDecimal.valueOf(distanceMeters).divide(BigDecimal.valueOf(1000), 3,
                 RoundingMode.HALF_UP);
         BigDecimal calculated = properties.getBaseFare().add(properties.getPerKm().multiply(distanceKm));
@@ -160,7 +229,8 @@ public class RideBookingServiceImp implements RideBookingService {
 
     private Ride find(UUID id) {
         return rideRepository.findById(id).orElseThrow(
-                () -> new BusinessException(BookingErrors.RESOURCE_NOT_FOUND, "Ride with given Id not found."));
+                () -> new BusinessException(BookingErrors.RESOURCE_NOT_FOUND, "Ride with given Id not found.",
+                        HttpStatus.NOT_FOUND));
     }
 
     private Ride findForUpdate(UUID id) {
@@ -186,17 +256,18 @@ public class RideBookingServiceImp implements RideBookingService {
             throw new BusinessException(BookingErrors.RIDE_CONFLICT, message);
     }
 
-    private void notifyParticipants(Ride ride) {
-        RideResponse payload = RideResponse.from(ride);
+    @Override
+    public void notifyParticipants(RideResponse ride) {
         afterCommit(() -> {
-            messagingTemplate.convertAndSendToUser(ride.getRiderId().toString(), "/queue/ride-updates", payload);
+            messagingTemplate.convertAndSendToUser(ride.getRiderId().toString(), "/queue/ride-updates", ride);
             if (ride.getDriverId() != null) {
-                messagingTemplate.convertAndSendToUser(ride.getDriverId().toString(), "/queue/ride-updates", payload);
+                messagingTemplate.convertAndSendToUser(ride.getDriverId().toString(), "/queue/ride-updates", ride);
             }
         });
     }
 
-    private void afterCommit(Runnable action) {
+    @Override
+    public void afterCommit(Runnable action) {
         if (!TransactionSynchronizationManager.isSynchronizationActive()) {
             action.run();
             return;

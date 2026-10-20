@@ -1,6 +1,13 @@
-import { createContext, useContext } from "react";
+import {
+    createContext,
+    useContext,
+    type Dispatch,
+    type SetStateAction,
+} from "react";
+import type { ActiveRideNotificationProps } from "../../components/ActiveRideNotification";
 import type { RideNotificationProps } from "../../components/toasts/components/RideNotificationComponent";
 import type { ToastProps } from "../../components/toasts/components/ToastComponent";
+import type { Ride } from "../../services/RideService";
 
 export type NoticeTheme = "info" | "success" | "warn" | "error";
 
@@ -11,8 +18,15 @@ export type NotificationContextProps = {
 
     rideUpdates: RideNotificationProps[];
     addRideNotification: (toast: RideNotificationProps) => void;
-    setActiveRide: (activeRide: RideNotificationProps) => void;
-    clearActiveRide: () => void;
+
+    getActiveRide: Ride | null;
+    setActiveRide: Dispatch<SetStateAction<Ride | null>>;
+
+    setActiveRideNotification: (
+        activeRide: ActiveRideNotificationProps,
+    ) => void;
+
+    clearActiveRideNotification: () => void;
 };
 
 export const NotificationContext =

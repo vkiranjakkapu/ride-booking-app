@@ -14,6 +14,7 @@ import DividerComponent from "../DividerComponent";
 import MarkerComponent from "../map/MarkerComponent";
 import { useNavigate } from "react-router-dom";
 import { RoutePaths } from "../../routes/RoutePaths";
+import useAuthContext from "../../context/auth/useAuthContext";
 
 type RideHistoryCardProps = HTMLAttributes<HTMLDivElement> & {
     ride: Ride;
@@ -27,6 +28,7 @@ export default function RideHistoryCard({
     hideDetails = false,
     ...props
 }: RideHistoryCardProps) {
+    const { isRider } = useAuthContext();
     const navigate = useNavigate();
 
     const fare = ride.finalFare ?? ride.estimatedFare;
@@ -44,17 +46,19 @@ export default function RideHistoryCard({
                                 {ride.status.replaceAll("_", " ")}
                             </p>
                         </div>
-                        {ride.status === RideStatus.REQUESTED && (
+                        {![RideStatus.COMPLETED, RideStatus.CANCELLED].includes(
+                            ride.status,
+                        ) && (
                             <ActionButton
                                 className="primary group rounded-full p-2 text-sm"
                                 title="Open Ride Details"
                                 icon={ArrowTopRightOnSquareIcon}
                                 onClick={() => {
                                     navigate(
-                                        RoutePaths.ENROUTE.replace(
-                                            ":rideId",
-                                            ride.id,
-                                        ),
+                                        (isRider
+                                            ? RoutePaths.RIDER_DASHBOARD
+                                            : RoutePaths.ENROUTE
+                                        ).replace(":rideId", ride.id),
                                     );
                                 }}
                             />
@@ -105,7 +109,7 @@ export default function RideHistoryCard({
                     <span className="inline-flex items-center gap-1">
                         <BanknotesIcon className="size-4" />
                         {DateFormatter.toFormattedDate(
-                            new Date(ride.createdAt),
+                            new Date(ride.completedAt ?? ride.createdAt),
                         )}
                     </span>
                 </div>

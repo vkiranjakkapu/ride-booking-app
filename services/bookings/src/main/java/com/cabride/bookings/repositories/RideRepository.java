@@ -9,8 +9,8 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.cabride.bookings.enums.RideStatus;
 import com.cabride.bookings.models.Ride;
-import com.cabride.bookings.models.RideStatus;
 
 import jakarta.persistence.LockModeType;
 
@@ -24,5 +24,9 @@ public interface RideRepository extends JpaRepository<Ride, UUID> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select r from Ride r where r.id = :id")
     Optional<Ride> findByIdForUpdate(@Param("id") UUID id);
+
+    Optional<Ride> findFirstByDriverIdAndStatusInOrderByUpdatedAtDesc(UUID driverId, List<RideStatus> statuses);
+
+    Optional<Ride> findFirstByRiderIdAndStatusInOrderByUpdatedAtDesc(UUID riderId, List<RideStatus> statuses);
 
 }

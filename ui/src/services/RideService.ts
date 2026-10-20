@@ -5,6 +5,7 @@ export const RideStatus = {
     ACCEPTED: "ACCEPTED",
     IN_PROGRESS: "IN_PROGRESS",
     COMPLETED: "COMPLETED",
+    PAID: "PAID",
     CANCELLED: "CANCELLED",
 };
 
@@ -22,6 +23,7 @@ export type Ride = {
     driverName?: string;
     driverPhone?: string;
     driverEmail?: string;
+    vehicleNumber?: string;
 
     pickupAddress: string;
     pickupLatitude: number;
@@ -48,6 +50,22 @@ export type Ride = {
 };
 
 class RideService {
+    async getFare<T>(distanceInMeters: number): Promise<ApiResponse<T>> {
+        return apiClient({
+            type: "get",
+            service: "rides",
+            uri: `/fare/${distanceInMeters}`,
+        });
+    }
+
+    async getActiveRide<T>(): Promise<ApiResponse<T>> {
+        return apiClient({
+            type: "get",
+            service: "rides",
+            uri: `/active`,
+        });
+    }
+
     async createRideRequest<T>(payload: {
         pickupAddress: string;
         pickupLatitude: number;
@@ -63,6 +81,14 @@ class RideService {
             service: "rides",
             uri: "/",
             payload,
+        });
+    }
+
+    async getRideOtp(id: string): Promise<ApiResponse<number>> {
+        return apiClient({
+            type: "get",
+            service: "rides",
+            uri: `/${id}/otp`,
         });
     }
 
@@ -90,11 +116,28 @@ class RideService {
         });
     }
 
+    async startRide<T>(id: string, otp: string): Promise<ApiResponse<T>> {
+        return apiClient({
+            type: "post",
+            service: "rides",
+            uri: `/${id}/start`,
+            payload: { otp },
+        });
+    }
+
     async declineRequest(id: string): Promise<ApiResponse<void>> {
         return apiClient({
             type: "post",
             service: "rides",
             uri: `/${id}/decline`,
+        });
+    }
+
+    async payRideFare<T>(id: string): Promise<ApiResponse<T>> {
+        return apiClient({
+            type: "post",
+            service: "rides",
+            uri: `/${id}/payment`,
         });
     }
 

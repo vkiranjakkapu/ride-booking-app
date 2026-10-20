@@ -9,6 +9,8 @@ import java.util.UUID;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import com.cabride.bookings.enums.RideStatus;
+
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
@@ -22,6 +24,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -40,6 +44,11 @@ public class Ride {
     private UUID riderId;
 
     private UUID driverId;
+
+    @Min(100_000)
+    @Max(999_999)
+    @Column(nullable = false)
+    private Integer otp;
 
     @Column(nullable = false, length = 500)
     private String pickupAddress;
