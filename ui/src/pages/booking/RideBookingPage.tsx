@@ -1,11 +1,15 @@
 import {
     ArrowsUpDownIcon,
+    ClockIcon,
     MagnifyingGlassIcon,
+    PaperAirplaneIcon,
     ViewfinderCircleIcon,
 } from "@heroicons/react/24/outline";
 import axios, { AxiosError } from "axios";
 import "leaflet/dist/leaflet.css";
 import { useCallback, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import type { ErrorResponse } from "../../api/api";
 import ActionButton from "../../components/ActionButtonComponent";
 import DividerComponent from "../../components/DividerComponent";
 import InputComponent from "../../components/formelements/InputComponent";
@@ -19,6 +23,10 @@ import RideSummaryComponent from "../../components/map/RideSummaryComponent";
 import SearchResultsComponent from "../../components/map/SearchResultsComponent";
 import Notification from "../../components/notifications/Notification";
 import { useNotifications } from "../../components/notifications/useNotifications";
+import useToastNotifications from "../../context/toasts/useToastNotifications";
+import { RoutePaths } from "../../routes/RoutePaths";
+import type { Ride } from "../../services/RideService";
+import RideService from "../../services/RideService";
 import MapComponent from "./MapComponent";
 
 export default function RideBookingPage() {
@@ -288,9 +296,121 @@ export default function RideBookingPage() {
      * * =======================================
      */
     const [routeSummary, setRouteSummary] = useState<RouteSummary | null>(null);
-    const handleRouteFound = useCallback((summary: RouteSummary) => {
-        setRouteSummary(summary);
-    }, []);
+
+    const [fare, setFare] = useState<number | null>(null);
+    const [fareFetchInProgress, setFareFetchInProgress] =
+        useState<boolean>(false);
+    const fareRequestRef = useRef<number>(0);
+    const handleRouteFound = useCallback(
+        (summary: RouteSummary) => {
+            setRouteSummary(summary);
+
+            const requestId = ++fareRequestRef.current;
+
+            setFareFetchInProgress(true);
+            RideService.getFare<number>(summary.distanceInMeters!)
+                .then((resp) => {
+                    if (fareRequestRef.current != requestId) return;
+
+                    setFare(resp.data);
+                })
+                .catch((e: ErrorResponse) => {
+                    if (fareRequestRef.current != requestId) return;
+                    console.log(e);
+
+                    setNotifications(
+                        "booking",
+                        {
+                            type: "warn",
+                            messages:
+                                "There was an error while getting ride amount. You can still continue with your booking if you want to proceed.",
+                        },
+                        10,
+                    );
+                })
+                .finally(() => {
+                    if (fareRequestRef.current === requestId) {
+                        setFareFetchInProgress(false);
+                    }
+                });
+        },
+        [setNotifications],
+    );
+
+    /**
+     * * =======================================
+     * * Ride Booking
+     * * =======================================
+     */
+    const navigate = useNavigate();
+    const [bookingInProgress, setBookingInProgress] = useState(false);
+    const { getActiveRide, setActiveRide, setActiveRideNotification } =
+        useToastNotifications();
+    function requestRide() {
+        if (getActiveRide) {
+            setNotifications("booking", {
+                type: "error",
+                messages: "Can't request another ride while one in progress.",
+            });
+            return;
+        }
+
+        if (
+            !destination ||
+            !routeSummary ||
+            !routeSummary.distanceInMeters ||
+            routeSummary.durationInSeconds == null
+        ) {
+            setNotifications("booking", {
+                type: "error",
+                messages:
+                    "Choose pickup and destination and wait for the route estimate.",
+            });
+            return;
+        }
+
+        const pickupAddress = pickupRef.current?.value.trim();
+        const destinationAddress = destinationRef.current?.value.trim();
+        if (!pickupAddress || !destinationAddress) {
+            setNotifications("booking", {
+                type: "error",
+                messages:
+                    "Search for and select both pickup and destination locations before booking.",
+            });
+            return;
+        }
+
+        setBookingInProgress(true);
+        RideService.createRideRequest<Ride>({
+            pickupAddress,
+            pickupLatitude: pickup[0],
+            pickupLongitude: pickup[1],
+            destinationAddress,
+            destinationLatitude: destination[0],
+            destinationLongitude: destination[1],
+            distanceMeters: routeSummary.distanceInMeters,
+            estimatedDurationSeconds: routeSummary.durationInSeconds,
+        })
+            .then((resp) => {
+                setNotifications("booking", {
+                    type: "success",
+                    messages:
+                        "Ride requested successfully. You can follow its status in Ride History.",
+                });
+                setActiveRide(resp.data);
+                setActiveRideNotification({
+                    ride: resp.data,
+                    showDetailsOf: "driver",
+                });
+                navigate(RoutePaths.ENROUTE.replace(":rideId", resp.data.id));
+            })
+            .catch((e: ErrorResponse) => {
+                setNotifications("booking", { type: "error", messages: e });
+            })
+            .finally(() => {
+                setBookingInProgress(false);
+            });
+    }
 
     return (
         <SectionLayoutComponent
@@ -502,16 +622,36 @@ export default function RideBookingPage() {
                     {routeSummary != null && (
                         <RideSummaryComponent
                             summary={routeSummary}
+                            estimatedFare={fare ?? undefined}
                             className="*:p-3"
                         />
                     )}
+
+                    <ActionButton
+                        text={
+                            !getActiveRide
+                                ? "Confirm Booking"
+                                : "Other Ride in Progress"
+                        }
+                        icon={!getActiveRide ? PaperAirplaneIcon : ClockIcon}
+                        className="primary w-full justify-center"
+                        spinner={{
+                            isLoading: bookingInProgress,
+                        }}
+                        onClick={requestRide}
+                        disabled={
+                            !routeSummary ||
+                            bookingInProgress ||
+                            fareFetchInProgress ||
+                            getActiveRide != null
+                        }
+                    />
                 </div>
                 <MapComponent
-                    className="border lg:w-4/6 order-1 lg:order-2"
+                    className="border lg:w-4/6 order-1 lg:order-2 *:rounded-md"
                     pickup={pickup}
                     destination={destination ?? undefined}
                     onMapClick={handleMapSelection}
-                    showDirectionGuide={false}
                     onRouteFound={handleRouteFound}
                 />
             </div>

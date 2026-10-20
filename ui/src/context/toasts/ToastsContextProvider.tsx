@@ -1,8 +1,18 @@
-import { useRef, useState, type ReactNode } from "react";
-import type { ActiveRideNotificationProps } from "../../components/ActiveRideNotification";
+import {
+    useCallback,
+    useEffect,
+    useRef,
+    useState,
+    type ReactNode,
+} from "react";
+import type { ErrorResponse } from "../../api/api";
+import { type ActiveRideNotificationProps } from "../../components/ActiveRideNotification";
 import type { RideNotificationProps } from "../../components/toasts/components/RideNotificationComponent";
 import type { ToastProps } from "../../components/toasts/components/ToastComponent";
 import NotificationLayout from "../../components/toasts/ToastsNotificationLayout";
+import type { Ride } from "../../services/RideService";
+import RideService from "../../services/RideService";
+import useAuthContext from "../auth/useAuthContext";
 import { NotificationContext } from "./useToastNotifications";
 
 export type NotificationsContextProviderProps = {
@@ -14,6 +24,8 @@ export default function ToastsContextProvider({
 }: NotificationsContextProviderProps) {
     const [toasts, setToasts] = useState<ToastProps[]>([]);
     const [rideUpdates, setRideUpdates] = useState<RideNotificationProps[]>([]);
+
+    const [activeRide, setActiveRide] = useState<Ride | null>(null);
 
     const autoCloseTime = 5000;
 
@@ -74,18 +86,58 @@ export default function ToastsContextProvider({
         };
     }
 
-    function setActiveRide(activeRide: ActiveRideNotificationProps) {
-        setRideUpdates((prev) => [
-            { activeRide } as RideNotificationProps,
-            ...prev.filter((rdn) => rdn.activeRide === undefined),
-        ]);
-    }
-
-    function clearActiveRide() {
+    const clearActiveRideNotification = useCallback(() => {
         setRideUpdates((prev) =>
-            prev.filter((rdn) => rdn.activeRide === undefined),
+            prev.filter((rd) => rd.activeRide === undefined),
         );
-    }
+    }, []);
+
+    const setActiveRideNotification = useCallback(
+        (activeRide: ActiveRideNotificationProps) => {
+            clearActiveRideNotification();
+            addRideNotification({ activeRide });
+        },
+        [clearActiveRideNotification],
+    );
+
+    const { isLoggedIn, isDriver } = useAuthContext();
+    useEffect(() => {
+        if (!isLoggedIn) {
+            queueMicrotask(() => {
+                setActiveRide(null);
+                clearActiveRideNotification();
+            });
+            return;
+        }
+
+        RideService.getActiveRide<Ride>()
+            .then((resp) => {
+                if (resp.status === 204) {
+                    return;
+                }
+
+                setActiveRide(resp.data);
+                setActiveRideNotification({
+                    ride: resp.data,
+                    showDetailsOf: isDriver ? "rider" : "driver",
+                });
+            })
+            .catch((e: ErrorResponse) => {
+                console.log(e);
+                addToast({
+                    type: e.errorCode === "503" ? "warn" : "info",
+                    message:
+                        e.errorCode === "503"
+                            ? "We are facing unexpected issues. Please go to history page to access your rides, after a while."
+                            : "Please find your ride details in history page.",
+                });
+            });
+    }, [
+        isLoggedIn,
+        isDriver,
+        setActiveRideNotification,
+        clearActiveRideNotification,
+    ]);
 
     return (
         <NotificationContext
@@ -95,8 +147,11 @@ export default function ToastsContextProvider({
                 addToast,
                 clearToast,
                 addRideNotification,
+                setActiveRideNotification,
+                getActiveRide: activeRide,
+                // getActiveRideSnapshot,
                 setActiveRide,
-                clearActiveRide,
+                clearActiveRideNotification,
             }}
         >
             <NotificationLayout />

@@ -1,6 +1,7 @@
 import {
     CalendarDaysIcon,
     CheckBadgeIcon,
+    ClipboardDocumentCheckIcon,
     EnvelopeIcon,
     FaceSmileIcon,
     IdentificationIcon,
@@ -29,7 +30,12 @@ import UserService from "../../services/UserService";
 export default function ProfilePage() {
     const { userId } = useParams<{ userId: string }>();
 
-    const { profile: user, isAdmin, updateProfile } = useAuthContext();
+    const {
+        profile: user,
+        isAdmin,
+        isDriver,
+        updateProfile,
+    } = useAuthContext();
     const navigate = useNavigate();
 
     const [fetchedProfile, setFetchedUserProfile] =
@@ -69,8 +75,10 @@ export default function ProfilePage() {
 
         const formData = new FormData(e.currentTarget);
 
+        const { vehicleNumber, ...restProfile } = userProfile || {};
+
         const payload = {
-            ...userProfile,
+            ...restProfile,
             name: formData.get("firstName") + " " + formData.get("lastName"),
             firstName: formData.get("firstName"),
             lastName: formData.get("lastName"),
@@ -78,7 +86,11 @@ export default function ProfilePage() {
             gender: formData.get("gender"),
             dob: formData.get("dob"),
             address: userProfile?.address,
-        } as UserProfile;
+
+            ...(isDriver && {
+                vehicleNumber: formData.get("vehicleNumber") ?? vehicleNumber,
+            }),
+        };
 
         setActionProgress("profile");
         UserService.updateProfile<UserProfile>(
@@ -245,6 +257,28 @@ export default function ProfilePage() {
                         customise="inherit-default"
                         required
                     />
+                    {isDriver && (
+                        <>
+                            <hr className="col-span-full" />
+                            <DividerComponent
+                                icon={ClipboardDocumentCheckIcon}
+                                text="Vehicle Details"
+                                className="col-span-full"
+                            />
+                            <InputComponent
+                                id="vehicleNumber"
+                                label={{
+                                    text: "#",
+                                }}
+                                type="text"
+                                placeholder="Registered Vehicle Number"
+                                name="vehicleNumber"
+                                defaultValue={userProfile?.vehicleNumber ?? ""}
+                                customise="inherit-default"
+                                required
+                            />
+                        </>
+                    )}
                     <div className="col-span-full text-end">
                         <ActionButton
                             text="Update"

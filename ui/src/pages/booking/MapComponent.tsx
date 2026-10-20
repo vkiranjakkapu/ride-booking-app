@@ -45,12 +45,15 @@ export default function MapComponent({
 
     onMapClick,
 
-    showDirectionGuide,
+    showDirectionGuide = false,
     onRouteFound,
     ...props
 }: MapComponentProps) {
     return (
-        <div {...props} className={`h-90 lg:h-150 ${props.className}`}>
+        <div
+            {...props}
+            className={`h-90 lg:h-150 relative z-0 ${props.className}`}
+        >
             <MapContainer
                 center={DEFAULT_CENTER}
                 zoom={DEFAULT_ZOOM}

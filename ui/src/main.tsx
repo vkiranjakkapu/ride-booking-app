@@ -9,12 +9,12 @@ import "./index.css";
 
 createRoot(document.getElementById("root")!).render(
     <StrictMode>
-        <ToastsContextProvider>
+        <BrowserRouter>
             <AuthenticationContextProvider>
-                <BrowserRouter>
+                <ToastsContextProvider>
                     <App />
-                </BrowserRouter>
+                </ToastsContextProvider>
             </AuthenticationContextProvider>
-        </ToastsContextProvider>
+        </BrowserRouter>
     </StrictMode>,
 );

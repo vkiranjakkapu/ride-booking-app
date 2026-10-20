@@ -26,7 +26,6 @@ export function useNotifications<T extends string>(services: T[]) {
             Object.values(currentTimers).forEach(clearTimeout);
         };
     }, []);
-
     const setNotifications = useCallback(
         <K extends T>(
             belongs: K,
@@ -38,27 +37,25 @@ export function useNotifications<T extends string>(services: T[]) {
                 delete timeouts.current[belongs];
             }
 
-            let resolvedNextValue: NotificationProps | null = null;
-
             updateNotifications((prev) => {
-                resolvedNextValue =
+                const resolvedNextValue =
                     typeof value === "function" ? value(prev[belongs]) : value;
+
+                if (resolvedNextValue !== null) {
+                    timeouts.current[belongs] = setTimeout(() => {
+                        updateNotifications((p) => ({
+                            ...p,
+                            [belongs]: null,
+                        }));
+                        delete timeouts.current[belongs];
+                    }, durationInSeconds * 1000);
+                }
 
                 return {
                     ...prev,
                     [belongs]: resolvedNextValue,
                 };
             });
-
-            if (resolvedNextValue !== null) {
-                timeouts.current[belongs] = setTimeout(() => {
-                    updateNotifications((p) => ({
-                        ...p,
-                        [belongs]: null,
-                    }));
-                    delete timeouts.current[belongs];
-                }, durationInSeconds * 1000);
-            }
         },
         [],
     );

@@ -30,7 +30,9 @@ export default function RideNotificationComponent({
             {...props}
             className={`border p-2 rounded-full flex items-center gap-1 w-[60ch] notification ride-notification ${type} ${useTheme || activeRide !== undefined ? `theme` : ""} ${useBold ? "bold" : ""} ${props.className ?? ""}`}
         >
-            {!activeRide ? (
+            {activeRide ? (
+                <ActiveRideNotificationComponent {...activeRide} />
+            ) : (
                 <>
                     {Icon ? (
                         <Icon className="size-4" />
@@ -39,8 +41,6 @@ export default function RideNotificationComponent({
                     )}
                     {message && <span>{message}</span>}
                 </>
-            ) : (
-                <ActiveRideNotificationComponent {...activeRide} />
             )}
         </div>
     );

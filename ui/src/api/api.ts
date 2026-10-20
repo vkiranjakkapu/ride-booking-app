@@ -36,7 +36,7 @@ export type ValidationErrors = {
 export type ApiClientProps = {
     type: "get" | "post" | "put" | "patch" | "delete";
     uri: string;
-    service: "identity" | "profile";
+    service: "identity" | "profile" | "bookings" | "rides";
     payload?: unknown;
     config?: AxiosRequestConfig<unknown, unknown>;
     rawResponse?: boolean;
@@ -57,6 +57,10 @@ export async function apiClient<T>({
             url = AppConfig.IDENTITY_AUTH_URL;
         } else if (service == "profile") {
             url = AppConfig.IDENTITY_PROFILE_URL;
+        } else if (service == "bookings") {
+            url = AppConfig.BOOKINGS_SERVICE_URL;
+        } else if (service == "rides") {
+            url = AppConfig.BOOKING_RIDES_URL;
         } else {
             // url = AppConfig.CMS_PUBLICATION_URL;
         }

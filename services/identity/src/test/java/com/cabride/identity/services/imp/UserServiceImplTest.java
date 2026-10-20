@@ -64,6 +64,8 @@ class UserServiceImplTest {
 
 	private User admin;
 	private Role adminRole;
+	private User driver;
+	private Role driverRole;
 	private AddressDto addressDto;
 	private Address address;
 	private UUID USER_ID;
@@ -78,6 +80,10 @@ class UserServiceImplTest {
 		adminRole = new Role();
 		adminRole.setId(1L);
 		adminRole.setName(RoleType.ADMIN);
+
+		driverRole = new Role();
+		driverRole.setId(1L);
+		driverRole.setName(RoleType.DRIVER);
 
 		addressDto = AddressDto.builder()
 				.street("MG Road")
@@ -96,6 +102,15 @@ class UserServiceImplTest {
 				.password("password")
 				.enabled(true)
 				.roles(Set.of(adminRole))
+				.build();
+		driver = User.builder()
+				.id(USER_ID)
+				.firstName("Admin")
+				.lastName("User")
+				.email("admin@test.com")
+				.password("password")
+				.enabled(true)
+				.roles(Set.of(driverRole))
 				.build();
 	}
 
@@ -143,9 +158,9 @@ class UserServiceImplTest {
 		UserResponse response = userService.createUser(request);
 
 		assertNotNull(response);
-		assertEquals("John", response.firstName());
-		assertEquals("Doe", response.lastName());
-		assertEquals("john@test.com", response.email());
+		assertEquals("John", response.getFirstName());
+		assertEquals("Doe", response.getLastName());
+		assertEquals("john@test.com", response.getEmail());
 
 		verify(userRepository).save(any(User.class));
 	}
@@ -210,7 +225,7 @@ class UserServiceImplTest {
 		List<UserResponse> users = userService.getAllUsers();
 
 		assertEquals(1, users.size());
-		assertEquals("admin@test.com", users.getFirst().email());
+		assertEquals("admin@test.com", users.getFirst().getEmail());
 
 		verify(userRepository).findAllByDeletedFalse();
 	}
@@ -224,7 +239,7 @@ class UserServiceImplTest {
 		List<UserResponse> users = userService.getAllUsersWithIds(List.of(USER_ID));
 
 		assertEquals(1, users.size());
-		assertEquals(USER_ID, users.getFirst().id());
+		assertEquals(USER_ID, users.getFirst().getId());
 
 		verify(userRepository).findByIdIn(List.of(USER_ID));
 	}
@@ -237,8 +252,8 @@ class UserServiceImplTest {
 
 		UserResponse response = userService.getUserById(USER_ID);
 
-		assertEquals(USER_ID, response.id());
-		assertEquals("admin@test.com", response.email());
+		assertEquals(USER_ID, response.getId());
+		assertEquals("admin@test.com", response.getEmail());
 
 		verify(userRepository).findById(USER_ID);
 	}
@@ -262,7 +277,7 @@ class UserServiceImplTest {
 
 		UserResponse response = userService.getUserByEmail("admin@test.com");
 
-		assertEquals("admin@test.com", response.email());
+		assertEquals("admin@test.com", response.getEmail());
 
 		verify(userRepository).findByEmail("admin@test.com");
 	}
@@ -283,11 +298,12 @@ class UserServiceImplTest {
 
 		Address existingAddress = new Address();
 		existingAddress.setId(1L);
-		admin.setAddress(existingAddress);
+		driver.setAddress(existingAddress);
 
 		UpdateUserRequest request = new UpdateUserRequest(
 				"Updated",
 				"User",
+				"",
 				"8888888888",
 				UserGender.NON_DISCLOSED,
 				null,
@@ -295,18 +311,18 @@ class UserServiceImplTest {
 				true);
 
 		when(userRepository.findById(USER_ID))
-				.thenReturn(Optional.of(admin));
+				.thenReturn(Optional.of(driver));
 
 		when(userRepository.save(any(User.class)))
 				.thenAnswer(i -> i.getArgument(0));
 
 		UserResponse response = userService.updateUser(USER_ID, request);
 
-		assertEquals("Updated", response.firstName());
-		assertEquals("User", response.lastName());
-		assertEquals("8888888888", response.phone());
+		assertEquals("Updated", response.getFirstName());
+		assertEquals("User", response.getLastName());
+		assertEquals("8888888888", response.getPhone());
 
-		verify(userRepository).save(admin);
+		verify(userRepository).save(driver);
 	}
 
 	@Test
@@ -315,6 +331,7 @@ class UserServiceImplTest {
 		UpdateUserRequest request = new UpdateUserRequest(
 				"Updated",
 				"User",
+				"",
 				"9999999999",
 				UserGender.NON_DISCLOSED,
 				null,
@@ -399,9 +416,9 @@ class UserServiceImplTest {
 		UserResponse response = userService.register(request);
 
 		assertNotNull(response);
-		assertEquals("newuser@test.com", response.email());
-		assertEquals("John", response.firstName());
-		assertEquals("Doe", response.lastName());
+		assertEquals("newuser@test.com", response.getEmail());
+		assertEquals("John", response.getFirstName());
+		assertEquals("Doe", response.getLastName());
 
 		verify(roleRepository).findByName(RoleType.DRIVER);
 		verify(passwordEncoder).encode("password");

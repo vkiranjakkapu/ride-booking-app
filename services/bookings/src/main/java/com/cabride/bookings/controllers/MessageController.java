@@ -16,6 +16,14 @@ public class MessageController {
         this.messagingTemplate = messagingTemplate;
     }
 
+    @MessageMapping("/active-ride-requests")
+    public void broadcastRideRequests(Principal principal, String message) {
+        messagingTemplate.convertAndSendToUser(
+                principal.getName(),
+                "/queue/ride-requests",
+                message);
+    }
+
     @MessageMapping("/test-ride-update")
     public void sendRideUpdate(Principal principal, String message) {
         messagingTemplate.convertAndSendToUser(

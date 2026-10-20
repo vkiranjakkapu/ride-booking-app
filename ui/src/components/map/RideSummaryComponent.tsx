@@ -1,15 +1,20 @@
 import type { HTMLAttributes } from "react";
 import DividerComponent from "../../components/DividerComponent";
+import type { Ride } from "../../services/RideService";
 import { formatDistance } from "../../utils/DistanceFormatters";
 import { formatDurationTaken } from "../../utils/DurationFormatter";
 import type { RouteSummary } from "./MapDtos";
 
 type RideSummaryComponentProps = HTMLAttributes<HTMLDivElement> & {
+    ride?: Ride;
+    estimatedFare?: number;
     summary: RouteSummary;
     showDirections?: boolean;
 };
 
 export default function RideSummaryComponent({
+    ride,
+    estimatedFare,
     summary,
     showDirections = false,
     ...props
@@ -17,22 +22,10 @@ export default function RideSummaryComponent({
     return (
         <div
             {...props}
-            className={`space-y-3 *:dark:bg-dark-primary/40 ${props.className}`}
+            className={`space-y-3 *:dark:bg-dark-primary ${props.className}`}
         >
-            <div className="space-y-2 rounded border">
-                <DividerComponent text="Ride Details" />
-                <hr />
-                <p className="capitalize">
-                    <b className="uppercase text-xs">Distance : </b>
-                    {summary?.distance}
-                </p>
-                <p className="capitalize">
-                    <b className="uppercase text-xs">Estimated Time : </b>
-                    {summary?.duration}
-                </p>
-            </div>
             {showDirections && summary.instructions.length > 0 && (
-                <div className="space-y-2 rounded border">
+                <div className="space-y-2 rounded border overflow-y-scroll max-h-120">
                     <DividerComponent text="Directions" />
                     <hr />
 
@@ -56,6 +49,24 @@ export default function RideSummaryComponent({
                     </ol>
                 </div>
             )}
+            <div className="space-y-2 rounded border">
+                <DividerComponent text="Ride Details" />
+                <hr />
+                {(ride || estimatedFare) && (
+                    <p className="capitalize">
+                        <b className="uppercase text-xs">Fare : </b>
+                        {`₹ ${estimatedFare ?? ride?.estimatedFare ?? "..."}`}
+                    </p>
+                )}
+                <p className="capitalize">
+                    <b className="uppercase text-xs">Distance : </b>
+                    {summary?.distance}
+                </p>
+                <p className="capitalize">
+                    <b className="uppercase text-xs">Estimated Time : </b>
+                    {summary?.duration}
+                </p>
+            </div>
         </div>
     );
 }
