@@ -8,13 +8,17 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.cabride.bookings.dto.AdminDashboardSummaryDto;
 import com.cabride.bookings.dto.DriverDashboardSummaryDto;
 import com.cabride.bookings.dto.DriverEarningsReportDto;
 import com.cabride.bookings.dto.RideResponse;
+import com.cabride.bookings.dto.UserResponseDto;
 import com.cabride.bookings.enums.RideStatus;
+import com.cabride.bookings.enums.RoleType;
 import com.cabride.bookings.models.Ride;
 import com.cabride.bookings.repositories.RideRepository;
 import com.cabride.bookings.services.CurrentUserService;
+import com.cabride.bookings.services.IdentityService;
 import com.cabride.bookings.services.ReportsService;
 
 import lombok.RequiredArgsConstructor;
@@ -30,6 +34,8 @@ public class ReportsServiceImpl implements ReportsService {
 			RideStatus.PAID);
 
 	private final RideRepository rideRepository;
+
+	private final IdentityService identityService;
 	private final CurrentUserService currentUserService;
 
 	@Override
@@ -85,5 +91,46 @@ public class ReportsServiceImpl implements ReportsService {
 				.map(Ride::getFinalFare)
 				.filter(fare -> fare != null)
 				.reduce(BigDecimal.ZERO, BigDecimal::add);
+	}
+
+	@Override
+	public AdminDashboardSummaryDto getAdminDashboardSummary() {
+		List<Ride> rides = rideRepository.findAll();
+		List<UserResponseDto> users = identityService.getAllUsers();
+
+		long completedRides = rides.stream()
+				.filter(ride -> ride.getStatus() == RideStatus.COMPLETED)
+				.count();
+
+		long activeRides = rides.stream()
+				.filter(ride -> Set.of(
+						RideStatus.ACCEPTED,
+						RideStatus.IN_PROGRESS,
+						RideStatus.PAID).contains(ride.getStatus()))
+				.count();
+
+		long totalDrivers = users.stream()
+				.filter(user -> user.roles() != null
+						&& user.roles().contains(RoleType.DRIVER))
+				.count();
+
+		BigDecimal totalRevenue = rides.stream()
+				.filter(ride -> ride.getStatus() == RideStatus.COMPLETED)
+				.map(Ride::getFinalFare)
+				.filter(fare -> fare != null)
+				.reduce(BigDecimal.ZERO, BigDecimal::add);
+
+		return new AdminDashboardSummaryDto(
+				users.size(),
+				totalDrivers,
+				rides.size(),
+				completedRides,
+				activeRides,
+				totalRevenue);
+	}
+
+	@Override
+	public List<UserResponseDto> getAdminUsers() {
+		return identityService.getAllUsers();
 	}
 }

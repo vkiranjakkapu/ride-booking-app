@@ -8,23 +8,24 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.cabride.bookings.dto.AdminDashboardSummaryDto;
 import com.cabride.bookings.dto.ApiResponseDto;
 import com.cabride.bookings.dto.DriverDashboardSummaryDto;
 import com.cabride.bookings.dto.DriverEarningsReportDto;
-import com.cabride.bookings.dto.RideResponse;
+import com.cabride.bookings.dto.UserResponseDto;
 import com.cabride.bookings.services.ReportsService;
 
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/bookings/api/v1/reports/driver")
+@RequestMapping("/bookings/api/v1/reports")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('DRIVER')")
 public class ReportsController {
 
 	private final ReportsService reportsService;
 
-	@GetMapping("/dashboard")
+	@GetMapping("/driver/dashboard")
+	@PreAuthorize("hasRole('DRIVER')")
 	public ResponseEntity<ApiResponseDto<DriverDashboardSummaryDto>> getDriverDashboardSummary() {
 
 		return ResponseEntity.ok(
@@ -33,7 +34,8 @@ public class ReportsController {
 						.build());
 	}
 
-	@GetMapping("/earnings")
+	@GetMapping("/driver/earnings")
+	@PreAuthorize("hasRole('DRIVER')")
 	public ResponseEntity<ApiResponseDto<DriverEarningsReportDto>> getDriverEarnings() {
 
 		return ResponseEntity.ok(
@@ -42,12 +44,24 @@ public class ReportsController {
 						.build());
 	}
 
-	@GetMapping("/ride-history")
-	public ResponseEntity<ApiResponseDto<List<RideResponse>>> getDriverRideHistory() {
+	@GetMapping("/admin/dashboard")
+	@PreAuthorize("hasRole('ADMIN')")
+	public ResponseEntity<ApiResponseDto<AdminDashboardSummaryDto>> getAdminDashboardSummary() {
 
 		return ResponseEntity.ok(
-				ApiResponseDto.<List<RideResponse>>builder()
-						.data(reportsService.getDriverRideHistory())
+				ApiResponseDto.<AdminDashboardSummaryDto>builder()
+						.data(reportsService.getAdminDashboardSummary())
 						.build());
 	}
+
+	@GetMapping("/admin/users")
+	@PreAuthorize("hasRole('ADMIN')")
+	public ResponseEntity<ApiResponseDto<List<UserResponseDto>>> getAdminUsers() {
+
+		return ResponseEntity.ok(
+				ApiResponseDto.<List<UserResponseDto>>builder()
+						.data(reportsService.getAdminUsers())
+						.build());
+	}
+
 }

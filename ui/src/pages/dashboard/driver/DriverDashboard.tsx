@@ -9,6 +9,8 @@ import ReportsService, {
     type DriverEarningsReport,
 } from "../../../services/ReportsService";
 import type { Ride } from "../../../services/RideService";
+import BookingsService from "../../../services/BookingsService";
+import SummaryCard from "../../../components/SummaryCard";
 
 const EMPTY_SUMMARY: DriverDashboardSummary = {
     totalRides: 0,
@@ -50,7 +52,7 @@ export default function DriverDashboard() {
         Promise.all([
             ReportsService.getDriverDashboardSummary(),
             ReportsService.getDriverEarnings(),
-            ReportsService.getDriverRideHistory(),
+            BookingsService.getMyRides<Ride[]>(),
         ])
             .then(([summaryResponse, earningsResponse, ridesResponse]) => {
                 setSummary(summaryResponse.data);
@@ -193,29 +195,5 @@ export default function DriverDashboard() {
                 </section>
             </div>
         </SectionLayoutComponent>
-    );
-}
-
-type SummaryCardProps = {
-    title: string;
-    value: string;
-    description: string;
-};
-
-function SummaryCard({ title, value, description }: SummaryCardProps) {
-    return (
-        <div className="p-5 rounded-xl border bg-white dark:bg-dark-primary shadow-sm">
-            <p className="text-sm font-medium text-current/70">
-                {title}
-            </p>
-
-            <p className="mt-3 wrap-break-words text-2xl font-bold">
-                {value}
-            </p>
-
-            <p className="mt-2 text-xs text-current/70">
-                {description}
-            </p>
-        </div>
     );
 }
