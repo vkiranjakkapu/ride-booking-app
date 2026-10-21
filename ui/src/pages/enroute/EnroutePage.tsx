@@ -69,6 +69,7 @@ export default function EnroutePage({ title, description }: EnroutePageProps) {
         clearActiveRideNotification,
 
         addRideNotification,
+        addToast,
     } = useToastNotifications();
 
     const activeRideRef = useRef<Ride | null>(null);
@@ -414,12 +415,12 @@ export default function EnroutePage({ title, description }: EnroutePageProps) {
 
     const connectionErrors = useCallback(
         (e: ErrorResponseWithTheme) => {
-            addRideNotification({
+            addToast({
                 type: e.theme ?? "error",
                 message: e.errorMessage,
             });
         },
-        [addRideNotification],
+        [addToast],
     );
     useRideUpdates(rideUpdates, false, connectionErrors);
 

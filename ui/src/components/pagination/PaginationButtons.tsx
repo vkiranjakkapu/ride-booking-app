@@ -22,16 +22,18 @@ export function PaginationButtons({
 
     return (
         <div className={`w-fit ${className}`}>
-            <div className="rounded-md overflow-hidden w-fit flex justify-self-end outline-1 outline-offset-1 outline-primary m-0.5">
+            <div className="rounded-md overflow-hidden w-fit flex justify-self-end outline-1 outline-offset-1 outline-primary-accent dark:outline-dark-accent m-0.5">
                 <ActionButton
                     icon={ChevronLeftIcon}
-                    className="btn-primary rounded-none p-2 outline-none m-0"
+                    className="primary rounded-r-none p-2 outline-none border-0"
+                    customise="m-0!"
                     onClick={goToPrevPage}
                     disabled={currentPage == 1}
                 />
                 <ActionButton
                     icon={ChevronRightIcon}
-                    className="btn-primary rounded-none p-2 outline-none m-0"
+                    className="primary rounded-l-none p-2 outline-none border-0"
+                    customise="m-0!"
                     onClick={goToNextPage}
                     disabled={totalPages == currentPage}
                 />

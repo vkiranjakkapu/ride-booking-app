@@ -58,14 +58,10 @@ export default function SectionLayoutComponent({
             )}
             {((pagination && pagination.totalPages > 1) || search) && (
                 <div className="flex flex-wrap items-center justify-between">
+                    <div>{search && <input {...search} />}</div>
                     <div>
                         {pagination && <PaginationButtons {...pagination} />}
                     </div>
-                    {search && (
-                        <div>
-                            <input {...search} />
-                        </div>
-                    )}
                 </div>
             )}
             {spinner && spinner.isLoading ? (
