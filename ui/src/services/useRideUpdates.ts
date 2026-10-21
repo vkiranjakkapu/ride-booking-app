@@ -17,14 +17,6 @@ export default function useRideUpdates(
     useEffect(() => {
         const token = TokenStorage.getAccessToken();
         if (!token || !AppConfig.API_BASE_URL) {
-            onError?.({
-                theme: "error",
-                errorMessage: `Unauthenticated access attempt. identified.`,
-            } as ErrorResponseWithTheme);
-            console.error("WebSocket not started:", {
-                hasToken: !!token,
-                hasApiBaseUrl: !!AppConfig.API_BASE_URL,
-            });
             return;
         }
 
