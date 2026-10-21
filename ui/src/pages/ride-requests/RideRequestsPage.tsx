@@ -1,4 +1,5 @@
 import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/outline";
+import type { IMessage } from "@stomp/stompjs";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type { ErrorResponse } from "../../api/api";
@@ -9,13 +10,20 @@ import RideRequestCard from "../../components/rides/RideRequestCard";
 import useToastNotifications from "../../context/toasts/useToastNotifications";
 import { RoutePaths } from "../../routes/RoutePaths";
 import type { Ride } from "../../services/RideService";
-import RideService from "../../services/RideService";
+import RideService, { RideStatus } from "../../services/RideService";
+import useRideUpdates, {
+    type ErrorResponseWithTheme,
+} from "../../services/useRideUpdates";
 
 export default function RideRequestsPage() {
     const navigate = useNavigate();
 
-    const { getActiveRide, setActiveRide, setActiveRideNotification } =
-        useToastNotifications();
+    const {
+        getActiveRide,
+        setActiveRide,
+        setActiveRideNotification,
+        addToast,
+    } = useToastNotifications();
 
     const { notifications, setNotifications } = useNotifications(["info"]);
     const infoNotifications = notifications["info"];
@@ -39,16 +47,39 @@ export default function RideRequestsPage() {
 
     useEffect(() => {
         if (getActiveRide) {
-            setNotifications("info", {
-                type: "warn",
-                messages:
-                    "You can't accept other rides, while one in progress.",
-            });
+            setNotifications(
+                "info",
+                {
+                    type: "warn",
+                    messages:
+                        "You can't accept other rides, while one in progress.",
+                },
+                true,
+            );
             return;
         }
 
         fetchAvailableRides();
     }, [getActiveRide, fetchAvailableRides, setNotifications]);
+
+    const rideUpdates = useCallback((frame: IMessage) => {
+        const newRide = JSON.parse(frame.body) as Ride;
+
+        if (newRide.status === RideStatus.CANCELLED) {
+            setAvailableRides((prev) =>
+                prev.filter((rd) => rd.id !== newRide.id),
+            );
+        } else {
+            setAvailableRides((prev) => [newRide, ...prev]);
+        }
+    }, []);
+
+    useRideUpdates(rideUpdates, true, (e: ErrorResponseWithTheme) => {
+        addToast({
+            type: e.theme ?? "warn",
+            message: e,
+        });
+    });
 
     const [actionProgress, setActionProgress] = useState<
         "accept" | "decline" | null
@@ -100,6 +131,7 @@ export default function RideRequestsPage() {
             description="Accept the ride to start pickup"
             spinner={{
                 isLoading: ridesFetchInProgress,
+                text: "Fetching available ride requests...",
             }}
             actionButtons={
                 getActiveRide

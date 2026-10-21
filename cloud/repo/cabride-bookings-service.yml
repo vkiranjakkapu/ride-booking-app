@@ -11,3 +11,7 @@ cabride:
     base-fare: 30.00
     per-km: 12.00
     minimum: 50.00
+  socket:
+    app-prefix: "app"
+    user-prefix: "user"
+    subscription-urls: [/queue, /topic]

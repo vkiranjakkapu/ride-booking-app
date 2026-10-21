@@ -14,6 +14,8 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import com.cabride.bookings.properties.WebSocketProperties;
+
 @Component
 public class StompAuthenticationInterceptor
         implements ChannelInterceptor {
@@ -22,11 +24,14 @@ public class StompAuthenticationInterceptor
 
     private final Converter<Jwt, AbstractAuthenticationToken> jwtAuthenticationConverter;
 
+    private final WebSocketProperties properties;
+
     public StompAuthenticationInterceptor(
             JwtDecoder jwtDecoder,
-            Converter<Jwt, AbstractAuthenticationToken> jwtAuthenticationConverter) {
+            Converter<Jwt, AbstractAuthenticationToken> jwtAuthenticationConverter, WebSocketProperties properties) {
         this.jwtDecoder = jwtDecoder;
         this.jwtAuthenticationConverter = jwtAuthenticationConverter;
+        this.properties = properties;
     }
 
     @Override
@@ -49,7 +54,6 @@ public class StompAuthenticationInterceptor
             return message;
         }
 
-        // Allow connection termination.
         if (command == StompCommand.DISCONNECT) {
             return message;
         }
@@ -64,8 +68,8 @@ public class StompAuthenticationInterceptor
 
         if (command == StompCommand.SEND) {
             if (destination != null
-                    && (destination.equals("/app")
-                            || destination.startsWith("/app/"))) {
+                    && (destination.equals("/".concat(properties.getAppPrefix()))
+                            || destination.startsWith("/".concat(properties.getAppPrefix()).concat("/")))) {
                 return message;
             }
 
@@ -74,13 +78,25 @@ public class StompAuthenticationInterceptor
         }
 
         if (command == StompCommand.SUBSCRIBE) {
-            if ("/topic/message".equals(destination)
-                    || "/user/queue/ride-updates".equals(destination)) {
+            if (destination == null) {
+                throw new AccessDeniedException("Subscription destination cannot be null");
+            }
+
+            String targetDestination = destination;
+            String userPrefixToken = "/".concat(properties.getUserPrefix()).concat("/");
+            if (targetDestination.startsWith(userPrefixToken)) {
+                targetDestination = targetDestination.substring(userPrefixToken.length() - 1);
+            }
+
+            final String evaluatedDestination = targetDestination;
+            if (properties.getSubscriptionUrls().stream()
+                    .anyMatch(url -> url.equals(evaluatedDestination)
+                            || evaluatedDestination.startsWith(url.concat("/")))) {
                 return message;
             }
 
             throw new AccessDeniedException(
-                    "Subscription to this destination is not allowed");
+                    "Subscription to " + destination + " is not allowed");
         }
 
         throw new AccessDeniedException(

@@ -177,6 +177,7 @@ public class RideBookingServiceImp implements RideBookingService {
                     "Only the rider who requested this ride can pay for this ride.");
         }
         ride.setStatus(RideStatus.PAID);
+        ride.setFinalFare(ride.getEstimatedFare());
 
         return RideResponse.from(rideRepository.saveAndFlush(ride));
     }
@@ -211,6 +212,9 @@ public class RideBookingServiceImp implements RideBookingService {
         ride.setStatus(RideStatus.CANCELLED);
         ride.setCancelledAt(Instant.now());
         Ride saved = rideRepository.saveAndFlush(ride);
+
+        afterCommit(() -> messagingTemplate.convertAndSend("/topic/ride-requests",
+                RideResponse.builder().id(rideId).status(saved.getStatus()).build()));
 
         return RideResponse.from(saved);
     }

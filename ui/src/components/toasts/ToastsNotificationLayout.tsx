@@ -6,6 +6,10 @@ import ToastComponent from "./components/ToastComponent";
 export default function NotificationLayout() {
     const { toasts, rideUpdates } = useToastNotifications();
 
+    const activeRideNotification = rideUpdates.find(
+        (rd) => rd.activeRide !== undefined,
+    );
+
     const layout = (
         <>
             <div className="z-50 absolute inset-0 m-6 pointer-events-none">
@@ -21,10 +25,19 @@ export default function NotificationLayout() {
 
             {/* RideNotifications */}
             {rideUpdates.length > 0 && (
-                <div className="absolute w-full px-4 md:px-10 lg:w-3/4 bottom-4 md:bottom-10 left-1/2 -translate-x-1/2 space-y-3">
-                    {rideUpdates.map((notice, idx) => (
-                        <RideNotificationComponent key={idx} {...notice} />
-                    ))}
+                <div className="absolute w-full px-4 md:px-10 lg:w-3/4 top-10 md:top-28 left-1/2 -translate-x-1/2 flex flex-col gap-3 items-center space-y-3">
+                    {rideUpdates
+                        .filter((rd) => !rd.activeRide)
+                        .map((notice, idx) => (
+                            <RideNotificationComponent key={idx} {...notice} />
+                        ))}
+                </div>
+            )}
+
+            {/* Active RideNotification */}
+            {activeRideNotification && (
+                <div className="absolute w-full px-4 md:px-10 lg:w-3/4 bottom-4 md:bottom-10 left-1/2 -translate-x-1/2 flex flex-col gap-3 items-center space-y-3">
+                    <RideNotificationComponent {...activeRideNotification} />
                 </div>
             )}
         </>

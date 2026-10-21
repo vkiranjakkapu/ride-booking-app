@@ -1,3 +1,4 @@
+import type { IMessage } from "@stomp/stompjs";
 import {
     useCallback,
     useEffect,
@@ -11,7 +12,8 @@ import type { RideNotificationProps } from "../../components/toasts/components/R
 import type { ToastProps } from "../../components/toasts/components/ToastComponent";
 import NotificationLayout from "../../components/toasts/ToastsNotificationLayout";
 import type { Ride } from "../../services/RideService";
-import RideService from "../../services/RideService";
+import RideService, { RideStatus } from "../../services/RideService";
+import useRideUpdates from "../../services/useRideUpdates";
 import useAuthContext from "../auth/useAuthContext";
 import { NotificationContext } from "./useToastNotifications";
 
@@ -24,7 +26,6 @@ export default function ToastsContextProvider({
 }: NotificationsContextProviderProps) {
     const [toasts, setToasts] = useState<ToastProps[]>([]);
     const [rideUpdates, setRideUpdates] = useState<RideNotificationProps[]>([]);
-
     const [activeRide, setActiveRide] = useState<Ride | null>(null);
 
     const autoCloseTime = 5000;
@@ -101,6 +102,37 @@ export default function ToastsContextProvider({
     );
 
     const { isLoggedIn, isDriver } = useAuthContext();
+
+    const wsRideUpdates = useCallback(
+        (frame: IMessage) => {
+            const ride = JSON.parse(frame.body) as Ride;
+
+            if (ride.status === RideStatus.COMPLETED) {
+                setActiveRide(null);
+                clearActiveRideNotification();
+                return;
+            }
+
+            setActiveRide(ride);
+            setActiveRideNotification({
+                ride,
+                showDetailsOf: isDriver ? "rider" : "driver",
+            });
+        },
+        [isDriver, setActiveRideNotification, clearActiveRideNotification],
+    );
+
+    useRideUpdates(
+        wsRideUpdates,
+        false,
+        useCallback((e) => {
+            addToast({
+                type: e.theme || "warn",
+                message: e.errorMessage || "Live updates connection error.",
+            });
+        }, []),
+    );
+
     useEffect(() => {
         if (!isLoggedIn) {
             queueMicrotask(() => {
@@ -149,7 +181,6 @@ export default function ToastsContextProvider({
                 addRideNotification,
                 setActiveRideNotification,
                 getActiveRide: activeRide,
-                // getActiveRideSnapshot,
                 setActiveRide,
                 clearActiveRideNotification,
             }}

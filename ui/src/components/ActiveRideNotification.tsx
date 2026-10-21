@@ -2,6 +2,7 @@ import { UserIcon } from "@heroicons/react/16/solid";
 import {
     ArrowTopRightOnSquareIcon,
     BanknotesIcon,
+    CheckBadgeIcon,
     PhoneIcon,
     UserCircleIcon,
     XMarkIcon,
@@ -166,14 +167,27 @@ export default function ActiveRideNotificationComponent({
                             RideStatus.PAID,
                         ].includes(ride.status) && (
                             <DividerComponent
-                                text={ride.status.replace("_", " ")}
+                                icon={
+                                    ride.status === RideStatus.PAID
+                                        ? CheckBadgeIcon
+                                        : undefined
+                                }
+                                text={
+                                    ride.status === RideStatus.PAID
+                                        ? `₹ ${ride.finalFare} paid`
+                                        : ride.status.replace("_", " ")
+                                }
+                                className={
+                                    ride.status === RideStatus.PAID
+                                        ? `text-emerald-600`
+                                        : ``
+                                }
                                 pingAnimation
                             />
                         )}
                         {(() => {
                             return ride.status === RideStatus.ACCEPTED ? (
-                                <div className="mx-auto p-2 flex items-center justify-between rounded-md border bg-primary/40 dark:bg-dark-primary italic text-sm text-center">
-                                    <div className="my-auto bg-primary-accent rounded-full p-1 animate-ping"></div>
+                                <div className="mx-auto p-2 rounded-md border bg-primary/40 dark:bg-dark-primary italic text-sm text-center">
                                     "
                                     {isDriver
                                         ? `${ride.riderName} is waiting at their pickup location.`
@@ -181,14 +195,16 @@ export default function ActiveRideNotificationComponent({
                                     "
                                 </div>
                             ) : (
-                                <div className="flex-1 w-full flex justify-center gap-0.5 p-2 text-center rounded-md border bg-primary/40 dark:bg-dark-primary">
-                                    <DividerComponent
-                                        text="Fare : "
-                                        icon={BanknotesIcon}
-                                        className="justify-center"
-                                    />
-                                    <span>₹ {ride.estimatedFare}</span>
-                                </div>
+                                ride.status !== RideStatus.PAID && (
+                                    <div className="flex-1 w-full flex justify-center gap-0.5 p-2 text-center rounded-md border bg-primary/40 dark:bg-dark-primary">
+                                        <DividerComponent
+                                            text="Fare : "
+                                            icon={BanknotesIcon}
+                                            className={`justify-center`}
+                                        />
+                                        <span>{`₹ ${ride.estimatedFare}`}</span>
+                                    </div>
+                                )
                             );
                         })()}
                     </div>
