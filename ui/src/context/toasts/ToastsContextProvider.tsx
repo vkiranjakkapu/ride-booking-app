@@ -107,7 +107,10 @@ export default function ToastsContextProvider({
         (frame: IMessage) => {
             const ride = JSON.parse(frame.body) as Ride;
 
-            if (ride.status === RideStatus.COMPLETED) {
+            if (
+                ride.status === RideStatus.COMPLETED ||
+                ride.status === RideStatus.CANCELLED
+            ) {
                 setActiveRide(null);
                 clearActiveRideNotification();
                 return;

@@ -7,7 +7,6 @@ import java.util.UUID;
 
 import com.cabride.bookings.enums.RoleType;
 import com.cabride.bookings.enums.UserGender;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import lombok.Builder;
 
@@ -22,7 +21,7 @@ public record UserResponseDto(UUID id,
 		UserGender gender,
 		AddressDto address,
 		boolean enabled,
-		@JsonIgnore Set<RoleType> roles,
+		Set<RoleType> roles,
 		LocalDateTime createdAt,
 		LocalDateTime updatedAt) {
 }

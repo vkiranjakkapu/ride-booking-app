@@ -125,9 +125,7 @@ export default function EnroutePage({ title, description }: EnroutePageProps) {
 
                 if (ride.status === RideStatus.COMPLETED) {
                     navigate(
-                        isDriver
-                            ? RoutePaths.RIDE_REQUESTS
-                            : RoutePaths.HISTORY,
+                        isDriver ? RoutePaths.DASHBOARD : RoutePaths.HISTORY,
                     );
                     return;
                 }
@@ -164,9 +162,7 @@ export default function EnroutePage({ title, description }: EnroutePageProps) {
 
                 if (activeRideRef.current.status === RideStatus.COMPLETED) {
                     navigate(
-                        isDriver
-                            ? RoutePaths.RIDE_REQUESTS
-                            : RoutePaths.HISTORY,
+                        isDriver ? RoutePaths.DASHBOARD : RoutePaths.HISTORY,
                     );
                     return;
                 }
@@ -384,9 +380,7 @@ export default function EnroutePage({ title, description }: EnroutePageProps) {
                     activeRideRef.current = null;
 
                     navigate(
-                        isDriver
-                            ? RoutePaths.RIDE_REQUESTS
-                            : RoutePaths.HISTORY,
+                        isDriver ? RoutePaths.DASHBOARD : RoutePaths.HISTORY,
                     );
                     return;
                 }
@@ -771,8 +765,8 @@ export default function EnroutePage({ title, description }: EnroutePageProps) {
                                         <p className="text-sm text-emerald-600 flex items-center gap-1">
                                             <InformationCircleIcon className="size-3" />
                                             <span>
-                                                Captain should complete the ride
-                                                now.
+                                                Your captain will complete this
+                                                ride now.
                                             </span>
                                         </p>
                                     )}

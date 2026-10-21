@@ -15,7 +15,7 @@ export type NotificationProps = {
 };
 
 export default function Notification({
-    type,
+    type = "info",
     messages,
     hideIcon = false,
     customise,

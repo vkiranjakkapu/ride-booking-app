@@ -1,14 +1,21 @@
 import {
     type InputHTMLAttributes,
-    type TableHTMLAttributes
+    type TableHTMLAttributes,
+    type TdHTMLAttributes,
 } from "react";
 
-import { renderCellValue, type IconProps } from "./commons";
-import type { PaginationButtonsProps } from "./pagination/PaginationButtons";
+import type { ActionButtonProps } from "./ActionButtonComponent";
+import ActionButton from "./ActionButtonComponent";
+import type { BadgeProps } from "./BadgeComponent";
+import BadgeComponent from "./BadgeComponent";
+import { type IconProps } from "./commons";
+import {
+    PaginationButtons,
+    type PaginationButtonsProps,
+} from "./pagination/PaginationButtons";
 import SpinnerComponent, {
     type SpinnerComponentProps,
 } from "./SpinnerComponent";
-import SectionLayoutComponent from "./layouts/SectionLayoutComponent";
 
 /**
  * Configuration properties for the generic {@link TableComponent}.
@@ -80,6 +87,9 @@ export type TableComponentProps<T> = TableHTMLAttributes<HTMLTableElement> & {
      */
     body: T[];
 
+    tableClassName?: string;
+    actionButtons?: ActionButtonProps[];
+
     /**
      * Defines additional action columns displayed at the end
      * of each table row.
@@ -138,7 +148,7 @@ export type TableComponentProps<T> = TableHTMLAttributes<HTMLTableElement> & {
      * Optional loading element to display before the table data got prepared.
      *
      */
-    loading?: { showSpinner?: boolean; spinner?: SpinnerComponentProps };
+    spinner?: SpinnerComponentProps;
 
     /**
      * Optional search configuration passed to the
@@ -204,6 +214,9 @@ export type HeaderAlias<T> = {
      * Values suplied is used as 'className' for the column value cells
      */
     customiseColumn?: string;
+
+    props?: (val: unknown) => TdHTMLAttributes<HTMLElement>;
+    renderColumn?: (val: unknown) => unknown | BadgeProps;
 };
 
 /**
@@ -303,10 +316,13 @@ export default function TableComponent<T>({
     columns: headers,
     enableHeader = false,
     body,
+    actionButtons,
     actionEvents,
-    loading,
+    spinner,
     search,
     pagination,
+    tableClassName,
+    ...props
 }: TableComponentProps<T>) {
     /**
      * Determines the columns that should be rendered.
@@ -336,157 +352,187 @@ export default function TableComponent<T>({
             : [];
 
     return (
-        <SectionLayoutComponent
-            title={title}
-            description={description}
-            search={search}
-            pagination={pagination}
-        >
-            <div className="overflow-x-auto overflow-y-clip rounded-md">
-                {loading && loading.showSpinner ? (
-                    <SpinnerComponent
-                        {...loading.spinner}
-                        animate={`${loading.spinner?.animate ?? "animate-pulse"}`}
-                    />
-                ) : body.length > 0 ? (
-                    <table
-                        className={`
-                        w-full min-w-max text-left text-sm
-                        [&_th,td]:px-6
-                        [&_th]:py-4
-                        [&_td]:py-2.5
-
-                        [&_tr>*:last-child:is(.fullSpan)]:bg-primary/20
-                        [&_tr]:hover:bg-primary/10
-                        [&_tr]:even:bg-slate-100
-                        dark:[&_tr]:even:bg-slate-600/20
-                    `}
-                        // [&_tr>*:last-child:not(.fullSpan)]:text-end
-                    >
-                        {!enableHeader && body.length > 0 && (
-                            <thead
-                                className={`
-                                text-xs font-semibold uppercase tracking-wider 
-                                bg-primary/10 dark:bg-slate-800
-                                border-b dark:text-primary
+        <section className={`rounded divide-y ${props.className}`}>
+            {(title || description || actionButtons) && (
+                <div className="p-5! flex flex-wrap items-center justify-between">
+                    <div className="space-y-1">
+                        {(title || description) && (
+                            <>
+                                <h1 className="text-lg font-semibold">
+                                    {title}
+                                </h1>
+                                <p className="text-sm text-current/70">
+                                    {description}
+                                </p>
+                            </>
+                        )}
+                    </div>
+                    {actionButtons && (
+                        <div>
+                            {actionButtons.map((btn, idx) => (
+                                <ActionButton key={idx} {...btn} />
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
+            {((pagination && pagination.totalPages > 1) || search) && (
+                <div className="p-5! flex flex-wrap items-center justify-between">
+                    <div>{search && <input {...search} />}</div>
+                    <div>
+                        {pagination && <PaginationButtons {...pagination} />}
+                    </div>
+                </div>
+            )}
+            {spinner && spinner.isLoading ? (
+                <SpinnerComponent
+                    {...spinner}
+                    customize={`my-2 ${spinner.customize}`}
+                />
+            ) : (
+                <div className="overflow-x-auto overflow-y-clip ">
+                    {body.length > 0 ? (
+                        <table
+                            {...props}
+                            className={`w-full min-w-max text-left text-sm
+                                [&_th,td]:px-5 [&_th]:py-3 [&_td]:py-4
+                                ${tableClassName}
                             `}
-                            >
-                                <tr>
-                                    {cols.map((column, idx) => (
-                                        <th scope="col" key={"th" + idx}>
-                                            {String(column.alias ?? column.key)}
-                                        </th>
-                                    ))}
-
-                                    {actionEvents &&
-                                        actionEvents.map((action, idx) => (
-                                            <th key={"ae" + idx}>
-                                                {action.title}
+                        >
+                            {!enableHeader && body.length > 0 && (
+                                <thead className="bg-primary/40 text-xs uppercase dark:bg-dark-secondary/80 text-current/70">
+                                    <tr>
+                                        {cols.map((column, idx) => (
+                                            <th scope="col" key={"th" + idx}>
+                                                {String(
+                                                    column.alias ?? column.key,
+                                                )}
                                             </th>
                                         ))}
-                                </tr>
-                            </thead>
-                        )}
-
-                        <tbody
-                            className={`
-                            divide-y transition-colors
-                            *:transition-colors
-                        `}
-                        >
-                            {body.map((item, idx) => (
-                                <tr key={"tb" + idx} className="group">
-                                    {cols.map((column) => {
-                                        const hasLineClamp =
-                                            column.customiseColumn?.includes(
-                                                "line-clamp",
+                                        {actionEvents &&
+                                            actionEvents.map((action, idx) => (
+                                                <th key={"ae" + idx}>
+                                                    {action.title}
+                                                </th>
+                                            ))}
+                                    </tr>
+                                </thead>
+                            )}
+                            <tbody
+                                className={`
+                                divide-y divide-current/12 transition-colors
+                                *:transition-colors
+                            `}
+                            >
+                                {body.map((item, idx) => (
+                                    <tr
+                                        key={"tb" + idx}
+                                        className="group text-current"
+                                    >
+                                        {cols.map((column) => {
+                                            const hasLineClamp =
+                                                column.customiseColumn?.includes(
+                                                    "line-clamp",
+                                                );
+                                            const value = item[column.key];
+                                            const tdVal = column.renderColumn
+                                                ? column.renderColumn(value)
+                                                : value;
+                                            return (
+                                                <td
+                                                    key={String(column.key)}
+                                                    className={`relative overflow-hidden ${column.customiseColumn}`}
+                                                    {...(() => {
+                                                        if (column.props) {
+                                                            return column.props(
+                                                                value,
+                                                            );
+                                                        }
+                                                    })()}
+                                                >
+                                                    {hasLineClamp ? (
+                                                        <>
+                                                            <div
+                                                                className={
+                                                                    column.customiseColumn
+                                                                }
+                                                            >
+                                                                {String(tdVal)}
+                                                            </div>
+                                                            <div className="absolute inset-x-0 bottom-0 h-5 bg-linear-to-t from-white dark:from-transparent group-hover:from-transparent to-transparent pointer-events-none transition-colors" />
+                                                        </>
+                                                    ) : (
+                                                        (() => {
+                                                            if (
+                                                                typeof tdVal ===
+                                                                "object"
+                                                            ) {
+                                                                return (
+                                                                    <BadgeComponent
+                                                                        {...(tdVal as BadgeProps)}
+                                                                    />
+                                                                );
+                                                            } else {
+                                                                return String(
+                                                                    tdVal,
+                                                                );
+                                                            }
+                                                        })()
+                                                    )}
+                                                </td>
                                             );
-
-                                        return (
-                                            <td
-                                                key={String(column.key)}
-                                                className={`relative overflow-hidden ${column.customiseColumn}`}
-                                                title={renderCellValue(
-                                                    String(item[column.key]),
-                                                    true,
-                                                )}
-                                            >
-                                                {hasLineClamp ? (
-                                                    <>
-                                                        <div
-                                                            className={
-                                                                column.customiseColumn
+                                        })}
+                                        {actionEvents &&
+                                            actionEvents.map(
+                                                (action, actionIdx) => {
+                                                    const clickEvent =
+                                                        action.clickEvent;
+                                                    return (
+                                                        <td
+                                                            key={
+                                                                "act" +
+                                                                actionIdx
                                                             }
                                                         >
-                                                            {renderCellValue(
-                                                                String(
-                                                                    item[
-                                                                        column
-                                                                            .key
-                                                                    ],
-                                                                ),
+                                                            {clickEvent && (
+                                                                <span
+                                                                    onClick={() => {
+                                                                        clickEvent.onClick(
+                                                                            item,
+                                                                        );
+                                                                    }}
+                                                                    className={`cursor-pointer flex flex-row items-center gap-1 ${clickEvent.className}`}
+                                                                >
+                                                                    {
+                                                                        clickEvent.text
+                                                                    }
+                                                                    {clickEvent.icon && (
+                                                                        <clickEvent.icon
+                                                                            className={`${clickEvent.text != undefined ? "size-4" : "size-5 mx-auto"}`}
+                                                                        />
+                                                                    )}
+                                                                </span>
                                                             )}
-                                                        </div>
-                                                        <div className="absolute inset-x-0 bottom-0 h-5 bg-linear-to-t from-white dark:from-transparent group-hover:from-transparent to-transparent pointer-events-none transition-colors" />
-                                                    </>
-                                                ) : (
-                                                    renderCellValue(
-                                                        String(
-                                                            item[column.key],
-                                                        ),
-                                                    )
-                                                )}
-                                            </td>
-                                        );
-                                    })}
-
-                                    {actionEvents &&
-                                        actionEvents.map(
-                                            (action, actionIdx) => {
-                                                const clickEvent =
-                                                    action.clickEvent;
-
-                                                return (
-                                                    <td key={"act" + actionIdx}>
-                                                        {clickEvent && (
-                                                            <span
-                                                                onClick={() => {
-                                                                    clickEvent.onClick(
-                                                                        item,
-                                                                    );
-                                                                }}
-                                                                className={`cursor-pointer flex flex-row items-center gap-1 ${clickEvent.className}`}
-                                                            >
-                                                                {
-                                                                    clickEvent.text
-                                                                }
-                                                                {clickEvent.icon && (
-                                                                    <clickEvent.icon
-                                                                        className={`${clickEvent.text != undefined ? "size-4" : "size-5 mx-auto"}`}
-                                                                    />
-                                                                )}
-                                                            </span>
-                                                        )}
-                                                    </td>
-                                                );
-                                            },
-                                        )}
-                                </tr>
-                            ))}
-
-                            {body.length == 0 && (
-                                <tr>
-                                    <td className="fullSpan capitalize text-center">
-                                        No Data to display
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
-                ) : (
-                    "No Data to display"
-                )}
-            </div>
-        </SectionLayoutComponent>
+                                                        </td>
+                                                    );
+                                                },
+                                            )}
+                                    </tr>
+                                ))}
+                                {body.length == 0 && (
+                                    <tr>
+                                        <td className="fullSpan capitalize text-center">
+                                            No Data to display
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    ) : (
+                        <span className="text-sm px-5">No Data to display</span>
+                    )}
+                </div>
+            )}
+        </section>
     );
 }

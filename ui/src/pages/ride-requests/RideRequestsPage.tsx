@@ -62,17 +62,28 @@ export default function RideRequestsPage() {
         fetchAvailableRides();
     }, [getActiveRide, fetchAvailableRides, setNotifications]);
 
-    const rideUpdates = useCallback((frame: IMessage) => {
-        const newRide = JSON.parse(frame.body) as Ride;
+    const rideUpdates = useCallback(
+        (frame: IMessage) => {
+            const newRide = JSON.parse(frame.body) as Ride;
 
-        if (newRide.status === RideStatus.CANCELLED) {
+            if (
+                ![RideStatus.REQUESTED, RideStatus.CANCELLED].includes(
+                    newRide.status,
+                )
+            )
+                return;
+
+            if (newRide.status === RideStatus.REQUESTED && !getActiveRide) {
+                setAvailableRides((prev) => [newRide, ...prev]);
+                return;
+            }
+
             setAvailableRides((prev) =>
                 prev.filter((rd) => rd.id !== newRide.id),
             );
-        } else {
-            setAvailableRides((prev) => [newRide, ...prev]);
-        }
-    }, []);
+        },
+        [getActiveRide],
+    );
 
     useRideUpdates(rideUpdates, true, (e: ErrorResponseWithTheme) => {
         addToast({
