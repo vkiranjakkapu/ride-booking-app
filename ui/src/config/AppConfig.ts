@@ -5,6 +5,8 @@ export const AppConfig = {
     BOOKINGS_SERVICE_URL: "/bookings/api/v1",
     BOOKING_RIDES_URL: "/bookings/api/v1/rides",
 
+    BOOKINGS_WS_URL: "/bookings/api/v1/ws",
+
     LOCAL_AUTH_KEY: "cabride",
     PUBLIC_ENDPOINTS: ["/auth", "/register"],
 } as const;

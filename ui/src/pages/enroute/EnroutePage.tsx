@@ -8,6 +8,7 @@ import {
     UserIcon,
     XCircleIcon,
 } from "@heroicons/react/24/outline";
+import type { IMessage } from "@stomp/stompjs";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import type { ErrorResponse } from "../../api/api";
@@ -25,6 +26,9 @@ import useAuthContext from "../../context/auth/useAuthContext";
 import useToastNotifications from "../../context/toasts/useToastNotifications";
 import { RoutePaths } from "../../routes/RoutePaths";
 import RideService, { RideStatus, type Ride } from "../../services/RideService";
+import useRideUpdates, {
+    type ErrorResponseWithTheme,
+} from "../../services/useRideUpdates";
 import MapComponent from "../booking/MapComponent";
 
 type EnroutePageProps = {
@@ -63,6 +67,8 @@ export default function EnroutePage({ title, description }: EnroutePageProps) {
 
         setActiveRideNotification,
         clearActiveRideNotification,
+
+        addRideNotification,
     } = useToastNotifications();
 
     const activeRideRef = useRef<Ride | null>(null);
@@ -109,8 +115,6 @@ export default function EnroutePage({ title, description }: EnroutePageProps) {
             ]);
             setFetchInProgress(false);
             getRideOtp(currentActive.id);
-            console.log(currentActive);
-
             return;
         }
 
@@ -340,6 +344,84 @@ export default function EnroutePage({ title, description }: EnroutePageProps) {
                 setActionProgress(null);
             });
     };
+
+    const rideUpdates = useCallback(
+        (frame: IMessage) => {
+            try {
+                const updatedRide = JSON.parse(frame.body) as Ride;
+
+                const currentRideId = rideId ?? activeRideRef.current?.id;
+
+                if (!currentRideId || updatedRide.id !== currentRideId) {
+                    return;
+                }
+
+                let message;
+                switch (updatedRide.status) {
+                    case RideStatus.ACCEPTED:
+                        message =
+                            "Captain on their way to your pickup location.";
+                        break;
+                    case RideStatus.IN_PROGRESS:
+                        message = "The ride has been begun.";
+                        break;
+                    case RideStatus.PAID:
+                        message = "Payment completed successfully.";
+                        break;
+                    case RideStatus.COMPLETED:
+                        message = "You ride has been completed successfully.";
+                        break;
+
+                    default:
+                        break;
+                }
+
+                addRideNotification({
+                    type: "success",
+                    message,
+                });
+
+                if (updatedRide.status === RideStatus.COMPLETED) {
+                    setRide(null);
+                    clearActiveRideNotification();
+                    setActiveRide(null);
+                    activeRideRef.current = null;
+
+                    navigate(
+                        isDriver
+                            ? RoutePaths.RIDE_REQUESTS
+                            : RoutePaths.HISTORY,
+                    );
+                    return;
+                }
+
+                setRide(updatedRide);
+                activeRideRef.current = updatedRide;
+                setActiveRide(updatedRide);
+            } catch (error) {
+                console.error("Failed to process ride update:", error);
+            }
+        },
+        [
+            rideId,
+            isDriver,
+            setActiveRide,
+            addRideNotification,
+            clearActiveRideNotification,
+            navigate,
+        ],
+    );
+
+    const connectionErrors = useCallback(
+        (e: ErrorResponseWithTheme) => {
+            addRideNotification({
+                type: e.theme ?? "error",
+                message: e.errorMessage,
+            });
+        },
+        [addRideNotification],
+    );
+    useRideUpdates(rideUpdates, false, connectionErrors);
 
     return (
         <SectionLayoutComponent

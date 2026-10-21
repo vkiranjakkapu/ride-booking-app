@@ -18,7 +18,7 @@ export default function ToastComponent({
 }: ToastProps) {
     const msg =
         typeof message === "object"
-            ? message.validationErrors.length > 0
+            ? message.validationErrors && message.validationErrors.length > 0
                 ? message.validationErrors.map(
                       (ve) => `${ve.field} ${ve.message}`,
                   )

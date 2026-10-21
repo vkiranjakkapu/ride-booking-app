@@ -212,6 +212,9 @@ public class RideBookingServiceImp implements RideBookingService {
         ride.setCancelledAt(Instant.now());
         Ride saved = rideRepository.saveAndFlush(ride);
 
+        afterCommit(() -> messagingTemplate.convertAndSend("/topic/ride-requests",
+                RideResponse.builder().id(rideId).status(saved.getStatus()).build()));
+
         return RideResponse.from(saved);
     }
 

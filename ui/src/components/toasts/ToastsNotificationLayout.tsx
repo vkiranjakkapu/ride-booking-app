@@ -21,7 +21,7 @@ export default function NotificationLayout() {
 
             {/* RideNotifications */}
             {rideUpdates.length > 0 && (
-                <div className="absolute w-full px-4 md:px-10 lg:w-3/4 bottom-4 md:bottom-10 left-1/2 -translate-x-1/2 space-y-3">
+                <div className="absolute w-full px-4 md:px-10 lg:w-3/4 bottom-4 md:bottom-10 left-1/2 -translate-x-1/2 flex flex-col gap-3 items-center space-y-3">
                     {rideUpdates.map((notice, idx) => (
                         <RideNotificationComponent key={idx} {...notice} />
                     ))}

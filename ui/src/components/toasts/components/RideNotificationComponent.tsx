@@ -28,7 +28,7 @@ export default function RideNotificationComponent({
     return (
         <div
             {...props}
-            className={`border p-2 rounded-full flex items-center gap-1 w-[60ch] notification ride-notification ${type} ${useTheme || activeRide !== undefined ? `theme` : ""} ${useBold ? "bold" : ""} ${props.className ?? ""}`}
+            className={`border p-2 rounded-md flex items-center justify-center gap-1 w-[60ch] notification ride-notification ${type} ${useTheme || activeRide !== undefined ? `theme` : ""} ${useBold ? "bold" : ""} ${props.className ?? ""}`}
         >
             {activeRide ? (
                 <ActiveRideNotificationComponent {...activeRide} />

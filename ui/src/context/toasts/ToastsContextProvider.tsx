@@ -149,7 +149,6 @@ export default function ToastsContextProvider({
                 addRideNotification,
                 setActiveRideNotification,
                 getActiveRide: activeRide,
-                // getActiveRideSnapshot,
                 setActiveRide,
                 clearActiveRideNotification,
             }}

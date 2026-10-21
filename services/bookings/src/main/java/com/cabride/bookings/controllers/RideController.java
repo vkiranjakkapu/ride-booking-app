@@ -230,30 +230,8 @@ public class RideController {
 	@PostMapping("/{rideId}/cancel")
 	@PreAuthorize("hasAnyRole('RIDER','ADMIN')")
 	public ResponseEntity<ApiResponseDto<RideResponse>> cancel(@PathVariable UUID rideId) {
-		RideResponse response = rideService.cancelRide(rideId);
-
-		Map<UUID, UserResponseDto> usersMap = identityService
-				.getAllUsersByIds(
-						Stream.of(response.getRiderId(), response.getDriverId())
-								.filter(Objects::nonNull)
-								.collect(Collectors.toSet()));
-
-		UserResponseDto rider = usersMap.get(response.getRiderId());
-		response.setRiderName(rider.firstName() + " " + rider.lastName());
-		response.setRiderEmail(rider.email());
-		response.setRiderPhone(rider.phone());
-
-		Optional.ofNullable(response.getDriverId()).ifPresent(driverId -> {
-			UserResponseDto driver = usersMap.get(driverId);
-			response.setDriverName(driver.firstName() + " " + driver.lastName());
-			response.setDriverEmail(driver.email());
-			response.setDriverPhone(driver.phone());
-			response.setVehicleNumber(driver.vehicleNumber());
-		});
-
-		rideService.notifyParticipants(response);
 		return ResponseEntity.ok(
-				ApiResponseDto.<RideResponse>builder().data(response).build());
+				ApiResponseDto.<RideResponse>builder().data(rideService.cancelRide(rideId)).build());
 	}
 
 }

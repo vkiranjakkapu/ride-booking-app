@@ -9,6 +9,7 @@ import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
 import com.cabride.bookings.interceptors.StompAuthenticationInterceptor;
+import com.cabride.bookings.properties.WebSocketProperties;
 import com.platform.security.properties.SecurityProperties;
 
 @Configuration
@@ -18,20 +19,23 @@ public class WebSocketMsgBrokerConfig implements WebSocketMessageBrokerConfigure
     private final StompAuthenticationInterceptor authenticationInterceptor;
     private final StompErrorHandler errorHandler;
     private final SecurityProperties properties;
+    private final WebSocketProperties webSocketProperties;
 
     public WebSocketMsgBrokerConfig(
             StompAuthenticationInterceptor authenticationInterceptor, StompErrorHandler errorHandler,
-            SecurityProperties properties) {
+            SecurityProperties properties,
+            WebSocketProperties webSocketProperties) {
         this.authenticationInterceptor = authenticationInterceptor;
         this.errorHandler = errorHandler;
         this.properties = properties;
+        this.webSocketProperties = webSocketProperties;
     }
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-        registry.setApplicationDestinationPrefixes("/app");
-        registry.setUserDestinationPrefix("/user");
-        registry.enableSimpleBroker("/topic", "/queue");
+        registry.setApplicationDestinationPrefixes("/".concat(webSocketProperties.getAppPrefix()));
+        registry.setUserDestinationPrefix("/".concat(webSocketProperties.getUserPrefix()));
+        registry.enableSimpleBroker(StringUtils.toStringArray(webSocketProperties.getSubscriptionUrls()));
     }
 
     @Override
