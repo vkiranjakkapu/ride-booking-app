@@ -326,11 +326,6 @@ export default function EnroutePage({ title, description }: EnroutePageProps) {
                 setRide(resp.data);
                 setActiveRide(resp.data);
                 activeRideRef.current = resp.data;
-
-                setNotifications("info", {
-                    type: "success",
-                    messages: "Payment successful.",
-                });
             })
             .catch((e: ErrorResponse) => {
                 console.log(e);
@@ -364,7 +359,7 @@ export default function EnroutePage({ title, description }: EnroutePageProps) {
                             "Captain on their way to your pickup location.";
                         break;
                     case RideStatus.IN_PROGRESS:
-                        message = "The ride has been begun.";
+                        message = "Your ride has begun.";
                         break;
                     case RideStatus.PAID:
                         message = "Payment completed successfully.";
@@ -447,6 +442,7 @@ export default function EnroutePage({ title, description }: EnroutePageProps) {
             {ride ? (
                 <div className="p-1 flex flex-col lg:flex-row flex-wrap gap-3 *:rounded">
                     <div className="flex-1 flex flex-col gap-3 order-2 lg:order-1 *:dark:border-dark-accent/20">
+                        {/* Messages */}
                         {(() => {
                             return isDriver ? (
                                 ride.status === RideStatus.ACCEPTED && (
@@ -555,35 +551,94 @@ export default function EnroutePage({ title, description }: EnroutePageProps) {
                                 )
                             );
                         })()}
+
+                        {/* Notifications */}
                         {rideNotifications && (
                             <Notification {...rideNotifications} />
                         )}
 
-                        {/* OTP Field & Cancel Button */}
-                        <div className="flex flex-wrap justify-end gap-3">
-                            {isDriver && ride.status === RideStatus.ACCEPTED ? (
-                                <div className="flex-1 space-y-2 bg-theme bg-primary/40 dark:bg-dark-primary/40 p-2 rounded-md border">
-                                    <DividerComponent text="Enter OTP" />
-                                    <InputComponent
-                                        id="otp"
-                                        placeholder="Ride OTP"
-                                        className="light"
-                                        ref={otpInputRef}
-                                    />
-                                    <ActionButton
-                                        text="Start Ride"
-                                        icon={CheckBadgeIcon}
-                                        className="theme-success justify-center w-full"
-                                        spinner={{
-                                            isLoading:
-                                                actionProgress === "start",
-                                        }}
-                                        onClick={startRide}
-                                        disabled={actionProgress === "start"}
-                                    />
-                                </div>
-                            ) : (
-                                <>
+                        {/* OTP & Cancel Button */}
+                        {isDriver ? (
+                            <div className="flex flex-wrap justify-end gap-3">
+                                {/* OTP Input Fields */}
+                                {ride.status === RideStatus.ACCEPTED && (
+                                    <div className="flex-1 space-y-2 bg-theme bg-primary/40 dark:bg-dark-primary/40 p-2 rounded-md border">
+                                        <DividerComponent text="Enter OTP" />
+                                        <InputComponent
+                                            id="otp"
+                                            placeholder="Ride OTP"
+                                            className="light"
+                                            ref={otpInputRef}
+                                        />
+                                        <ActionButton
+                                            text="Start Ride"
+                                            icon={CheckBadgeIcon}
+                                            className="theme-success justify-center w-full"
+                                            spinner={{
+                                                isLoading:
+                                                    actionProgress === "start",
+                                            }}
+                                            onClick={startRide}
+                                            disabled={
+                                                actionProgress === "start"
+                                            }
+                                        />
+                                    </div>
+                                )}
+
+                                {/* Complete Ride */}
+                                {[
+                                    RideStatus.IN_PROGRESS,
+                                    RideStatus.PAID,
+                                ].includes(ride.status) && (
+                                    <div className="flex-1">
+                                        <ActionButton
+                                            className="primary justify-center w-full"
+                                            text="Complete Ride"
+                                            icon={CheckBadgeIcon}
+                                            onClick={completeRide}
+                                            disabled={
+                                                !(
+                                                    ride.status ===
+                                                    RideStatus.PAID
+                                                )
+                                            }
+                                        />
+                                        {ride.status !== RideStatus.PAID && (
+                                            <p className="mt-1 text-amber-500 flex gap-0.5 items-center">
+                                                <InformationCircleIcon className="size-3" />
+                                                <span className="text-sm">
+                                                    Rider have{" "}
+                                                    <b className="uppercase">
+                                                        not paid
+                                                    </b>{" "}
+                                                    the money{" "}
+                                                    <b className="uppercase">
+                                                        YET
+                                                    </b>
+                                                    .
+                                                </span>
+                                            </p>
+                                        )}
+                                        {ride.status === RideStatus.PAID && (
+                                            <p className="mt-1 text-emerald-600 flex gap-0.5 items-center">
+                                                <InformationCircleIcon className="size-4" />
+                                                <span className="text-sm">
+                                                    Payment Completed. You can
+                                                    complete the ride now.
+                                                </span>
+                                            </p>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            [
+                                RideStatus.REQUESTED,
+                                RideStatus.ACCEPTED,
+                            ].includes(ride.status) && (
+                                <div className="flex flex-wrap justify-end gap-3">
+                                    {/* Cancel Button */}
                                     {ride.status === RideStatus.REQUESTED && (
                                         <div className="flex-1">
                                             <ActionButton
@@ -602,6 +657,8 @@ export default function EnroutePage({ title, description }: EnroutePageProps) {
                                             />
                                         </div>
                                     )}
+
+                                    {/* OTP Display */}
                                     {ride.status === RideStatus.ACCEPTED && (
                                         <div className="w-full bg-theme p-2 rounded-md border">
                                             {rideOtp && (
@@ -667,58 +724,9 @@ export default function EnroutePage({ title, description }: EnroutePageProps) {
                                             )}
                                         </div>
                                     )}
-                                    {/* Complete Ride */}
-                                    {isDriver &&
-                                        [
-                                            RideStatus.IN_PROGRESS,
-                                            RideStatus.PAID,
-                                        ].includes(ride.status) && (
-                                            <div className="flex-1">
-                                                <ActionButton
-                                                    className="primary justify-center w-full"
-                                                    text="Complete Ride"
-                                                    icon={CheckBadgeIcon}
-                                                    onClick={completeRide}
-                                                    disabled={
-                                                        !(
-                                                            ride.status ===
-                                                            RideStatus.PAID
-                                                        )
-                                                    }
-                                                />
-                                                {ride.status !==
-                                                    RideStatus.PAID && (
-                                                    <p className="mt-1 text-amber-500 flex gap-0.5 items-center">
-                                                        <InformationCircleIcon className="size-3" />
-                                                        <span className="text-sm">
-                                                            Rider have{" "}
-                                                            <b className="uppercase">
-                                                                not paid
-                                                            </b>{" "}
-                                                            the money{" "}
-                                                            <b className="uppercase">
-                                                                YET
-                                                            </b>
-                                                            .
-                                                        </span>
-                                                    </p>
-                                                )}
-                                                {ride.status ===
-                                                    RideStatus.PAID && (
-                                                    <p className="mt-1 text-emerald-600 flex gap-0.5 items-center">
-                                                        <InformationCircleIcon className="size-4" />
-                                                        <span className="text-sm">
-                                                            Payment Completed.
-                                                            You can complete the
-                                                            ride now.
-                                                        </span>
-                                                    </p>
-                                                )}
-                                            </div>
-                                        )}
-                                </>
-                            )}
-                        </div>
+                                </div>
+                            )
+                        )}
 
                         {/* Ride Summary */}
                         {routeSummary ? (

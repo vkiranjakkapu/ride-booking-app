@@ -47,11 +47,15 @@ export default function RideRequestsPage() {
 
     useEffect(() => {
         if (getActiveRide) {
-            setNotifications("info", {
-                type: "warn",
-                messages:
-                    "You can't accept other rides, while one in progress.",
-            });
+            setNotifications(
+                "info",
+                {
+                    type: "warn",
+                    messages:
+                        "You can't accept other rides, while one in progress.",
+                },
+                true,
+            );
             return;
         }
 
@@ -127,6 +131,7 @@ export default function RideRequestsPage() {
             description="Accept the ride to start pickup"
             spinner={{
                 isLoading: ridesFetchInProgress,
+                text: "Fetching available ride requests...",
             }}
             actionButtons={
                 getActiveRide
